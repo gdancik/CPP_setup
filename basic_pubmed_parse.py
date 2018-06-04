@@ -1,5 +1,37 @@
+from operator import itemgetter
 import pubmed_parser as pp
-pubmed_dict = pp.parse_medline_xml('pubmedsample18n0001.xml')
-for item in pubmed_dict:
-    print(item['title'] + '\n' + item['abstract'] + '\n' + item['journal'] + '\n' +
-          item['author'] + '\n' + item['pubdate'] + '\n')
+
+#parse xml into dictionary, sort dictionary by pmid key
+def createPubDict (file):
+    pubmed_dict = pp.parse_medline_xml(file)
+    pubmed_dict = sorted(pubmed_dict, key = itemgetter('pmid'))
+    return pubmed_dict
+
+#create sorted list of pmid values from text file
+def createPmidList (file):
+    pmid = [line.strip() for line in open(file)]
+    pmid.sort()
+    return pmid
+
+#both dictionary and pmid list are sorted, single pass through dictionary to
+#match the requested pmid articles.  write matching data to file
+def printPmidMatches(pubmed_dict, pmidList, file):
+    outFile = open(file, 'w')
+    index = 0 #start at beginning of pmid list
+    for item in pubmed_dict: #increment through pmid keys in the dictionary
+        if item['pmid'] == pmid[index]: #if key in list
+            outFile.write(item['title'] + '\t' + item['abstract'] + '\t' +
+                          item['journal'] + '\t' + item['author'] + '\t' +
+                          item['pubdate'] + '\n')
+            index += 1 #next pmid in text file
+            if index >= len(pmid): #break if at end of list
+                break
+    outFile.close()
+            
+pubFile = "pubmedsample18n0001.xml"
+pmidFile = "pmids.txt"
+matchOutFile = "pmidMatchData.txt"
+
+pubmed_dict = createPubDict(pubFile)
+pmidList = createPmidList(pmidFile)
+printPmidMatches(pubmed_dict, pmidList, matchOutFile)
