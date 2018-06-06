@@ -4,7 +4,6 @@ import pubmed_parser as pp
 #parse xml into dictionary, sort dictionary by pmid key
 def createPubDict (file):
     pubmed_dict = pp.parse_medline_xml(file)
-    pubmed_dict = sorted(pubmed_dict, key = itemgetter('pmid'))
     return pubmed_dict
 
 #create sorted list of pmid values from text file
@@ -16,6 +15,7 @@ def createPmidList (file):
 #both dictionary and pmid list are sorted, single pass through dictionary to
 #match the requested pmid articles.  write matching data to file
 def printPmidListMatches(pubmed_dict, pmidList, file):
+    pubmed_dict = sorted(pubmed_dict, key = itemgetter('pmid'))
     outFile = open(file, 'w')
     index = 0 #start at beginning of pmid list
     for item in pubmed_dict: #increment through pmid keys in the dictionary
@@ -53,8 +53,8 @@ pmidFile = "pmids.txt"
 matchOutFile = "pmidMatchData.txt"
 
 pubmed_dict = createPubDict(pubFile)
-pmidList = createPmidList(pmidFile)
-printPmidListMatches(pubmed_dict, pmidList, matchOutFile)
+#pmidList = createPmidList(pmidFile)
+#printPmidListMatches(pubmed_dict, pmidList, matchOutFile)
 
-#pmidSet = createPmidSet(pmidFile)
-#printPmidSetMatches(pubmed_dict, pmidSet, matchOutFile)
+pmidSet = createPmidSet(pmidFile)
+printPmidSetMatches(pubmed_dict, pmidSet, matchOutFile)
