@@ -19,12 +19,12 @@ def printPmidMatches(pubmed_dict, pmidList, file):
     outFile = open(file, 'w')
     index = 0 #start at beginning of pmid list
     for item in pubmed_dict: #increment through pmid keys in the dictionary
-        if item['pmid'] == pmid[index]: #if key in list
+        if item['pmid'] == pmidList[index]: #if key in list
             outFile.write(item['title'] + '\t' + item['abstract'] + '\t' +
                           item['journal'] + '\t' + item['author'] + '\t' +
                           item['pubdate'] + '\n')
             index += 1 #next pmid in text file
-            if index >= len(pmid): #break if at end of list
+            if index >= len(pmidList): #break if at end of list
                 break
     outFile.close()
             
