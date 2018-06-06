@@ -15,7 +15,7 @@ def createPmidList (file):
 
 #both dictionary and pmid list are sorted, single pass through dictionary to
 #match the requested pmid articles.  write matching data to file
-def printPmidListMatches(pubmed_dict, pmidList, file):
+def printPmidMatches(pubmed_dict, pmidList, file):
     outFile = open(file, 'w')
     index = 0 #start at beginning of pmid list
     for item in pubmed_dict: #increment through pmid keys in the dictionary
@@ -27,34 +27,11 @@ def printPmidListMatches(pubmed_dict, pmidList, file):
             if index >= len(pmidList): #break if at end of list
                 break
     outFile.close()
-    
-# alternate way with sets
-def createPmidSet (file):
-    pmid = [line.strip() for line in open(file)]
-    pmidSet = set(pmid)
-    return pmidSet
-
-def printPmidSetMatches(pubmed_dict, pmidSet, file):
-    outFile = open(file, 'w')
-    index = 0 #start at beginning of pmid list
-    for item in pubmed_dict: #increment through pmid keys in the dictionary
-        if item['pmid'] in pmidSet: #if key in set
-            outFile.write(item['title'] + '\t' + item['abstract'] + '\t' +
-                          item['journal'] + '\t' + item['author'] + '\t' +
-                          item['pubdate'] + '\n')
-            index += 1 #next pmid in text file
-            if index >= len(pmidSet): #break if at end of list
-                break
-    outFile.close()
-                
-
+            
 pubFile = "pubmedsample18n0001.xml"
 pmidFile = "pmids.txt"
 matchOutFile = "pmidMatchData.txt"
 
 pubmed_dict = createPubDict(pubFile)
 pmidList = createPmidList(pmidFile)
-printPmidListMatches(pubmed_dict, pmidList, matchOutFile)
-
-#pmidSet = createPmidSet(pmidFile)
-#printPmidSetMatches(pubmed_dict, pmidSet, matchOutFile)
+printPmidMatches(pubmed_dict, pmidList, matchOutFile)
