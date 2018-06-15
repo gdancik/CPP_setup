@@ -9,7 +9,7 @@ timeit is commented out but it was useful to determine whether removing
 characters before writing to file was too time consuming.
 timeit.default_timer() should work across platforms.
 
-numStop is the total number of files + 1, currently 928, this may need
+numStop is the total number of files + 1, currently 928 files, this may need
 to be updated as additional pubmed updates may change the number of files
 
 """
