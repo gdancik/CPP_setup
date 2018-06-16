@@ -2,12 +2,9 @@
 """
 At the bottom of the code before the execution of createTxtFromXML function,
 adjust the filePath variable accordingly, code should execute without any
-other alterations.  
+other alterations.
 
-ascii() adds '' to each string, using [1:-1] removes this but adds time
-timeit is commented out but it was useful to determine whether removing 
-characters before writing to file was too time consuming.
-timeit.default_timer() should work across platforms.
+Test against dcast database for matching pmids in the PubGene table
 
 numStop is the total number of files + 1, currently 928 files, this may need
 to be updated as additional pubmed updates may change the number of files
@@ -15,15 +12,40 @@ to be updated as additional pubmed updates may change the number of files
 """
 import pubmed_parser as pp
 #import timeit
+import mysql.connector
+from mysql.connector import errorcode
 
 #parse xml into dictionary
 def createPubDict (file):
     pubmed_dict = pp.parse_medline_xml(file)
     return pubmed_dict
 
-def createTxtFromXML(filePath):    
+#database access for pmids
+def dCastDatabase (filePath):
+    try:
+        #best effort to conceal password, ugly but works
+        #text file contains password without '' or "" encapsulation
+        inFile = open("databaseInfo.txt")
+        dataPass = inFile.readline()
+        inFile.close()
+        cnx = mysql.connector.connect(user='root', password=str(dataPass),
+                                      database='dcast')
+    except mysql.connector.Error as err:
+        
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+    else:
+        #if valid connection to database, create txt files
+        createTxtFromXML(filePath, cnx)
+        cnx.close()
 
+def createTxtFromXML(filePath, cnx):    
 
+    query = ("select PMID from PubGene where PMID = ") #generic query
     numStop = 929 # use to get all abstracts: Currently 928
     numStop = 5   # use for testing
     
@@ -37,33 +59,38 @@ def createTxtFromXML(filePath):
         
         writeFile = open(outFile, 'w') #open file for data transfer
         
+        print("reading file:", "pubmed18n" + fileNumStr + ".xml.gz")
+        
         #create dictionary from retrieved xml.gz
         pubmed_dict = createPubDict(inFile)
-        print("writing file:", "extracted_pubmed18n" + fileNumStr) #show progress in execution
+        
+        print("writing file:", "extracted_pubmed18n" + fileNumStr + ".txt") #show progress in execution
+        
+        #unbuffered fetchone() causes error after a large amount of queries, reusing a cursor
+        #repeatedly without fetching all results leads to "unread result found"
+        #buffered allows all results to be fetched, but only returns one to code
+        cursor = cnx.cursor(buffered=True)
+        
         for item in pubmed_dict:
-            writeToFile(item, writeFile) #write desired info to file
-            
+            cursor.execute(query + item['pmid']) #query + current items pmid
+            row = cursor.fetchone() #fetches result of query, either None or matching value
+            if row != None : #if matching value found
+                 writeToFile(item, writeFile) #write item in pubmed_dict to file
         writeFile.close() #next iteration will be new file name, this file is no longer used
+        cursor.close()
 #        t1 = timeit.default_timer()
 #        print(t1 - t0)
 
 def writeToFile (item, writeFile):
-    #write file removing '' encapsulation from ascii()
-    writeFile.write(ascii(item['pmid'])[1:-1] + '\t' + 
-                    ascii(item['title'])[1:-1] + '\t' + 
-                    ascii(item['author'])[1:-1] + '\t' + 
-                    ascii(item['journal'])[1:-1] + '\t' +
-                    ascii(item['pubdate'])[1:-1] + '\t' + 
-                    ascii(item['abstract'])[1:-1] + '\n')
-    #write file ignoring '' encapsulation from ascii()
-#    writeFile.write(ascii(item['pmid']) + '\t' + 
-#                    ascii(item['title']) + '\t' + 
-#                    ascii(item['author']) + '\t' + 
-#                    ascii(item['journal']) + '\t' +
-#                    ascii(item['pubdate']) + '\t' + 
-#                    ascii(item['abstract']) + '\n')
+
+    writeFile.write(ascii(item['pmid']) + '\t' + 
+                    ascii(item['title']) + '\t' + 
+                    ascii(item['author']) + '\t' + 
+                    ascii(item['journal']) + '\t' +
+                    ascii(item['pubdate']) + '\t' + 
+                    ascii(item['abstract']) + '\n')
     
 
 #path for xml and text files, only necessary change for user
 filePath = "C:/Users/kewil/PubMedXML/"
-createTxtFromXML(filePath)
+dCastDatabase(filePath)
