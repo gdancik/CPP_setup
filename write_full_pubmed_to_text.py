@@ -1,19 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-At the bottom of the code before the execution of createTxtFromXML function,
-adjust the filePath variable accordingly, code should execute without any
-other alterations.
+Usage:
 
-Test against dcast database for matching pmids in the PubGene table
+  write_full_pubmed_to_text.py [-h] username password inputDirectory outputDirectory
 
-numStop is the total number of files + 1, currently 928 files, this may need
-to be updated as additional pubmed updates may change the number of files
+Extract dcast article information from PubMed xml files
 
+positional arguments:
+  username         dcast username
+  password         dcast password
+  inputDirectory   directory of input files
+  outputDirectory  directory of output files
+
+Tests against dcast database for matching pmids in the PubGene table
 """
+
 import pubmed_parser as pp
 #import timeit
 import mysql.connector
 from mysql.connector import errorcode
+
+import sys
+import argparse
+import glob
+import os
+
 
 #parse xml into dictionary
 def createPubDict (file):
@@ -21,14 +32,11 @@ def createPubDict (file):
     return pubmed_dict
 
 #database access for pmids
-def dCastDatabase (filePath):
+def dCastDatabase (userName, password, inputDirectory, outputDirectory):
     try:
         #best effort to conceal password, ugly but works
         #text file contains password without '' or "" encapsulation
-        inFile = open("databaseInfo.txt")
-        dataPass = inFile.readline()
-        inFile.close()
-        cnx = mysql.connector.connect(user='root', password=str(dataPass),
+        cnx = mysql.connector.connect(user=userName, password=password,
                                       database='dcast')
     except mysql.connector.Error as err:
         
@@ -40,31 +48,34 @@ def dCastDatabase (filePath):
             print(err)
     else:
         #if valid connection to database, create txt files
-        createTxtFromXML(filePath, cnx)
+        createTxtFromXML(inputDirectory, cnx)
         cnx.close()
 
 def createTxtFromXML(filePath, cnx):    
 
     query = ("select PMID from PubGene where PMID = ") #generic query
-    numStop = 929 # use to get all abstracts: Currently 928
-    numStop = 5   # use for testing
     
-    for fileNum in range(1, numStop):
+    # get all xml.gz files in specified directory
+    files = sorted(glob.glob(filePath +"/*.xml.gz"))
+    print("Number of *.xml.gz files found in directory '", filePath, "': ", len(files), sep = "")
+
+    # create outputDirectory if it does not exist
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
+
+    for inFile in files:
 #        t0 = timeit.default_timer()
-        fileNumStr = str(fileNum)
-        fileNumStr = fileNumStr.rjust(4, "0")  # pad string with 0s
-    
-        inFile = filePath + "pubmed18n" + fileNumStr + ".xml.gz" #read xml file       
-        outFile = filePath + "extracted_pubmed18n" + fileNumStr + ".txt" #write text file
+   
         
-        writeFile = open(outFile, 'w') #open file for data transfer
-        
-        print("reading file:", "pubmed18n" + fileNumStr + ".xml.gz")
+        print("reading file:", inFile)
         
         #create dictionary from retrieved xml.gz
         pubmed_dict = createPubDict(inFile)
         
-        print("writing file:", "extracted_pubmed18n" + fileNumStr + ".txt") #show progress in execution
+        outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
+        print("writing file:", outFile) #show progress in execution
+        
+        writeFile = open(outFile, 'w') #open file for data transfer
         
         #unbuffered fetchone() causes error after a large amount of queries, reusing a cursor
         #repeatedly without fetching all results leads to "unread result found"
@@ -91,6 +102,26 @@ def writeToFile (item, writeFile):
                     ascii(item['abstract']) + '\n')
     
 
+# main program
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser(description='Extract dcast article information from PubMed xml files')
+ap.add_argument("username", help="dcast username")
+ap.add_argument("password", help="dcast password")
+ap.add_argument("inputDirectory", help = "directory of input files")
+ap.add_argument("outputDirectory", help = "directory of output files")
+
+# print help if no arguments are provided
+if len(sys.argv)==1:
+    ap.print_help(sys.stderr)
+    sys.exit(1)
+
+args = vars(ap.parse_args())
+
+userName = args['username']
+password = args['password']
+
+inputDirectory = args['inputDirectory']
+outputDirectory = args['outputDirectory']
+
 #path for xml and text files, only necessary change for user
-filePath = "C:/Users/kewil/PubMedXML/"
-dCastDatabase(filePath)
+dCastDatabase(userName, password, inputDirectory, outputDirectory)
