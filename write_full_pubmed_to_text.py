@@ -14,9 +14,12 @@ positional arguments:
 
 Tests against dcast database for matching pmids in the PubGene table
 """
+#possible try/catch imports
+#import lxml #to catch XMLSyntaxError
+#import shutil #move file location
 
 import pubmed_parser as pp
-#import timeit
+import timeit
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -34,8 +37,6 @@ def createPubDict (file):
 #database access for pmids
 def dCastDatabase (userName, password, inputDirectory, outputDirectory):
     try:
-        #best effort to conceal password, ugly but works
-        #text file contains password without '' or "" encapsulation
         cnx = mysql.connector.connect(user=userName, password=password,
                                       database='dcast')
     except mysql.connector.Error as err:
@@ -54,6 +55,7 @@ def dCastDatabase (userName, password, inputDirectory, outputDirectory):
 def createTxtFromXML(filePath, cnx):    
 
     query = ("select PMID from PubGene where PMID = ") #generic query
+    errorStr = "" #for try / catch
     
     # get all xml.gz files in specified directory
     files = sorted(glob.glob(filePath +"/*.xml.gz"))
@@ -64,16 +66,25 @@ def createTxtFromXML(filePath, cnx):
         os.makedirs(outputDirectory)
 
     for inFile in files:
-#        t0 = timeit.default_timer()
-   
+        t0 = timeit.default_timer()
         
-        print("reading file:", inFile)
+        #test if file can be parsed rather than having code crash
+#        try:
+#            #create dictionary from retrieved xml.gz
+#            pubmed_dict = createPubDict(inFile)
+#        
+#        except lxml.etree.XMLSyntaxError as err:
+#            errorStr += inFile + '\n'
+#            if not os.path.exists(filePath + ("/NotRead/")): #create folder for failed xml
+#                os.makedirs(filePath + ("/NotRead/"))
+#            shutil.move(inFile, filePath + "/NotRead/" + os.path.basename(inFile)) #move to notread folder
+#            print(err)
+#            print("Failed parse:", filePath + os.path.basename(inFile))
+#            continue #continue to next file
         
-        #create dictionary from retrieved xml.gz
         pubmed_dict = createPubDict(inFile)
         
         outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
-        print("writing file:", outFile) #show progress in execution
         
         writeFile = open(outFile, 'w') #open file for data transfer
         
@@ -83,14 +94,22 @@ def createTxtFromXML(filePath, cnx):
         cursor = cnx.cursor(buffered=True)
         
         for item in pubmed_dict:
-            cursor.execute(query + item['pmid']) #query + current items pmid
-            row = cursor.fetchone() #fetches result of query, either None or matching value
-            if row != None : #if matching value found
-                 writeToFile(item, writeFile) #write item in pubmed_dict to file
+            if item['delete'] != 'False': #if entry not updated later
+                cursor.execute(query + item['pmid']) #query + current items pmid
+                row = cursor.fetchone() #fetches result of query, either None or matching value
+                if row != None : #if matching value found
+                     writeToFile(item, writeFile) #write item in pubmed_dict to file
         writeFile.close() #next iteration will be new file name, this file is no longer used
         cursor.close()
-#        t1 = timeit.default_timer()
-#        print(t1 - t0)
+        t1 = timeit.default_timer()
+        print("Successful Write : " + outFile + " : " + str(t1 - t0))        
+    
+    #unnecessary unless try / catch 
+    if not errorStr == "": 
+        print("\nFiles not written:\n" + errorStr)
+    else:
+        print("\nAll files written successfully")
+
 
 def writeToFile (item, writeFile):
 
