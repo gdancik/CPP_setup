@@ -15,11 +15,12 @@ positional arguments:
 Tests against dcast database for matching pmids in the PubGene table
 """
 #possible try/catch imports
-#import lxml #to catch XMLSyntaxError
-#import shutil #move file location
+import lxml #to catch XMLSyntaxError
+import shutil #move file location
 
 import pubmed_parser as pp
 import timeit
+import time
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -68,21 +69,29 @@ def createTxtFromXML(filePath, cnx):
     for inFile in files:
         t0 = timeit.default_timer()
         
-        #test if file can be parsed rather than having code crash
-#        try:
-#            #create dictionary from retrieved xml.gz
-#            pubmed_dict = createPubDict(inFile)
-#        
-#        except lxml.etree.XMLSyntaxError as err:
-#            errorStr += inFile + '\n'
-#            if not os.path.exists(filePath + ("/NotRead/")): #create folder for failed xml
-#                os.makedirs(filePath + ("/NotRead/"))
-#            shutil.move(inFile, filePath + "/NotRead/" + os.path.basename(inFile)) #move to notread folder
-#            print(err)
-#            print("Failed parse:", filePath + os.path.basename(inFile))
-#            continue #continue to next file
+        try:
+            #create dictionary from retrieved xml.gz
+            pubmed_dict = createPubDict(inFile)
         
-        pubmed_dict = createPubDict(inFile)
+        except lxml.etree.XMLSyntaxError as err:
+            errorStr += inFile + '\n'
+            if not os.path.exists(filePath + ("/InvalidXML/")): #create folder for failed xml
+                os.makedirs(filePath + ("/InvalidXML/"))
+            shutil.move(inFile, filePath + "/InvalidXML/" + os.path.basename(inFile)) #move to notread folder
+            print(err)
+            print("Failed parse (XMLSyntaxError) :", filePath + os.path.basename(inFile))
+            continue #skip to next file
+        
+        except MemoryError as err:
+            errorStr += inFile + '\n'
+            if not os.path.exists(filePath + ("/NotRead/")): #create folder for failed xml
+                os.makedirs(filePath + ("/NotRead/"))
+            shutil.move(inFile, filePath + "/NotRead/" + os.path.basename(inFile)) #move to notread folder
+            print("Failed parse (MemoryError) :", filePath + os.path.basename(inFile))
+            time.sleep(5)
+            continue #skip to next file
+            
+#        pubmed_dict = createPubDict(inFile)
         
         outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
         
@@ -102,7 +111,8 @@ def createTxtFromXML(filePath, cnx):
         writeFile.close() #next iteration will be new file name, this file is no longer used
         cursor.close()
         t1 = timeit.default_timer()
-        print("Successful Write : " + outFile + " : " + str(t1 - t0))        
+        print("Successful Write : " + outFile + " : " + str(t1 - t0))   
+        time.sleep(1)
     
     #unnecessary unless try / catch 
     if not errorStr == "": 
