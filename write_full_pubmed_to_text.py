@@ -66,6 +66,8 @@ def createTxtFromXML(filePath, cnx):
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
 
+    errorCount = 0
+
     for inFile in files:
         t0 = timeit.default_timer()
         
@@ -73,26 +75,19 @@ def createTxtFromXML(filePath, cnx):
             #create dictionary from retrieved xml.gz
             pubmed_dict = createPubDict(inFile)
         
-        except lxml.etree.XMLSyntaxError as err:
-            errorStr += inFile + '\n'
-            if not os.path.exists(filePath + ("/InvalidXML/")): #create folder for failed xml
-                os.makedirs(filePath + ("/InvalidXML/"))
-            shutil.move(inFile, filePath + "/InvalidXML/" + os.path.basename(inFile)) #move to notread folder
-            print(err)
-            print("Failed parse (XMLSyntaxError) :", filePath + os.path.basename(inFile))
+        except :            
+            if not os.path.exists(outputDirectory + ("/ERRORS/")): #create folder for failed file
+                os.makedirs(outputDirectory + ("/ERRORS/"))
+            shutil.copy(inFile, outputDirectory + "/ERRORS/" + os.path.basename(inFile)) #move to ERROR folder
+            errorStr = os.path.basename(inFile) + " - " + str(sys.exc_info()[0])
+            print(errorStr)
+            f = open(outputDirectory + "/ERRORS/log.txt", "a")
+            f.write(errorStr + "\n")
+            f.close()
+            errorCount += 1
             continue #skip to next file
         
-        except MemoryError as err:
-            errorStr += inFile + '\n'
-            if not os.path.exists(filePath + ("/NotRead/")): #create folder for failed xml
-                os.makedirs(filePath + ("/NotRead/"))
-            shutil.move(inFile, filePath + "/NotRead/" + os.path.basename(inFile)) #move to notread folder
-            print("Failed parse (MemoryError) :", filePath + os.path.basename(inFile))
-            time.sleep(5)
-            continue #skip to next file
-            
-#        pubmed_dict = createPubDict(inFile)
-        
+             
         outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
         
         writeFile = open(outFile, 'w') #open file for data transfer
@@ -115,10 +110,8 @@ def createTxtFromXML(filePath, cnx):
         time.sleep(1)
     
     #unnecessary unless try / catch 
-    if not errorStr == "": 
-        print("\nFiles not written:\n" + errorStr)
-    else:
-        print("\nAll files written successfully")
+    if errorCount is not 0 :
+        print("\nWarning:", errorCount, "files could not written. See", outputDirectory + "/ERRORS/log.txt for more information")
 
 
 def writeToFile (item, writeFile):
