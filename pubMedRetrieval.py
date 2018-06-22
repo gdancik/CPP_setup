@@ -6,13 +6,16 @@
 import urllib.request
 import sys
 import os
+import glob
 
-if len(sys.argv) != 2 :
+if len(sys.argv) != 2 and len(sys.argv) != 3 :
 
-    msg = "Usage: python pubMedRetrieval directory" 
+    msg = "Usage: python pubMedRetrieval directory [--retry]\n Note: use --retry only to re-download all files in the directory" 
     raise Exception(msg)
 
 directory = sys.argv[1]
+retry = sys.argv[2] == "--retry"
+
 
 if not os.path.exists(directory):
         os.makedirs(directory)
@@ -21,16 +24,24 @@ print("Files will be saved to the following directory:", directory)
 
 url = "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/"
 
-numStop = 929 # use to get all abstracts
 #numStop = 5   # use for testing
 
-for fileNum in range(1, numStop) :
-  fileNumStr = str(fileNum)
-  fileNumStr = fileNumStr.rjust(4, "0")  # pad string with 0s
+files = []
 
-  fileName = "pubmed18n" + fileNumStr + ".xml.gz"
+if retry :
+    files = glob.glob(directory+"/*.xml.gz")
+    files = [os.path.basename(f) for f in files]
+else :
+    numStop = 929 # use to get all abstracts
+    #fileNumStr = str(fileNum)
+    #fileNumStr = fileNumStr.rjust(4, "0")  # pad string with 0s
+    #fileName = "pubmed18n" + fileNumStr + ".xml.gz"
+    files = ["pubmed18n" + str(fileNum).rjust(4, "0") + ".xml.gz" for fileNum in range(1,numStop)]
 
-  if os.path.exists(directory + "/" + fileName) :
+
+for fileName in files :
+
+  if not retry and os.path.exists(directory + "/" + fileName) :
       print("File already exists and will not be downloaded: " + fileName)
       continue
 
