@@ -21,15 +21,22 @@ print("Files will be saved to the following directory:", directory)
 
 url = "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/"
 
-numStop = 930 # use to get all abstracts
-numStop = 5   # use for testing
+numStop = 929 # use to get all abstracts
+#numStop = 5   # use for testing
 
 for fileNum in range(1, numStop) :
   fileNumStr = str(fileNum)
   fileNumStr = fileNumStr.rjust(4, "0")  # pad string with 0s
 
   fileName = "pubmed18n" + fileNumStr + ".xml.gz"
+
+  if os.path.exists(directory + "/" + fileName) :
+      print("File already exists and will not be downloaded: " + fileName)
+      continue
+
   print("retrieving file:", fileName)
 
-  urllib.request.urlretrieve(url + fileName, directory + "/" + fileName)
-
+  try :
+    urllib.request.urlretrieve(url + fileName, directory + "/" + fileName)
+  except :
+    print("Warning: " + fileName + " could not be downloaded\n")      

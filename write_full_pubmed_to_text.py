@@ -107,7 +107,7 @@ def createTxtFromXML(filePath, cnx):
         cursor.close()
         t1 = timeit.default_timer()
         print("Successful Write : " + outFile + " : " + str(t1 - t0))   
-        time.sleep(1)
+        #time.sleep(1)
     
     #unnecessary unless try / catch 
     if errorCount is not 0 :
