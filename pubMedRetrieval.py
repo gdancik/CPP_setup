@@ -7,14 +7,53 @@ import urllib.request
 import sys
 import os
 import glob
+import argparse
 
-if len(sys.argv) != 2 and len(sys.argv) != 3 :
 
-    msg = "Usage: python pubMedRetrieval directory [--retry]\n Note: use --retry only to re-download all files in the directory" 
-    raise Exception(msg)
+if len(sys.argv) == 1 or sys.argv[1] != '--by-num' and sys.argv[1] != '--retry':
+    print("Usage: ")
+    print("\tpython", sys.argv[0], "--by-num url startNum endNum outputDirectory")
+    print("\tpython", sys.argv[0], "--retry outputDirectory\n")
+    print("For additional help, type one of the following:\n\npython --by-num -h\npython --retry -h for help")
+    sys.exit(1)
 
-directory = sys.argv[1]
-retry = sys.argv[2] == "--retry"
+if sys.argv[1] == '--by-num' :
+    ap = argparse.ArgumentParser(description="Retrieve PubMed XML files from 'startNum' to 'endNum'\nNote: a file will not be downloaded if it already exists")
+    ap.add_argument("url", help="ftp url, such as 'ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/' or 'ftp://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/'")
+    ap.add_argument("startNum", type = int, help="starting file number")
+    ap.add_argument("endNum", type = int, help="ending file number")
+    ap.add_argument("outputDirectory", help = "directory of output files")
+    ap.prog = ap.prog + " --by-num" 
+
+    # remove program name and --by-num
+    sys.argv = sys.argv[2:]
+    # print help if no arguments are provided
+    if len(sys.argv)== 0:
+        ap.print_help(sys.stderr)
+        sys.exit(1)
+
+    args = vars(ap.parse_args(sys.argv))
+    startNum = args['startNum']
+    endNum = args['endNum']
+    retry = False
+else :
+    ap = argparse.ArgumentParser(description="Redownload PubMed XML files that are in a directory")
+    ap.add_argument("url", help="ftp url, such as 'ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/' or 'ftp://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/'")
+    ap.add_argument("outputDirectory", help = "directory containing files to download again")
+    ap.prog = ap.prog + " --retry" 
+    # remove program name and --retry
+    sys.argv = sys.argv[2:]
+    # print help if no arguments are provided
+    if len(sys.argv)== 0:
+        ap.print_help(sys.stderr)
+        sys.exit(1)
+
+    args = vars(ap.parse_args(sys.argv))
+    retry = True
+    
+    
+url = args['url']
+directory = args['outputDirectory']
 
 
 if not os.path.exists(directory):
@@ -22,21 +61,16 @@ if not os.path.exists(directory):
 
 print("Files will be saved to the following directory:", directory)
 
-url = "ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/"
-
-#numStop = 5   # use for testing
-
 files = []
 
 if retry :
     files = glob.glob(directory+"/*.xml.gz")
     files = [os.path.basename(f) for f in files]
 else :
-    numStop = 929 # use to get all abstracts
     #fileNumStr = str(fileNum)
     #fileNumStr = fileNumStr.rjust(4, "0")  # pad string with 0s
     #fileName = "pubmed18n" + fileNumStr + ".xml.gz"
-    files = ["pubmed18n" + str(fileNum).rjust(4, "0") + ".xml.gz" for fileNum in range(1,numStop)]
+    files = ["pubmed18n" + str(fileNum).rjust(4, "0") + ".xml.gz" for fileNum in range(startNum,endNum+1)]
 
 
 for fileName in files :
