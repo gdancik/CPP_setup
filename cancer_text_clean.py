@@ -27,7 +27,7 @@ import sys
 import os
 import timeit
 
-def cleanText (inputDirectory, outFile):
+def cleanText (inputDirectory):
 
     wordDict = {} #empty dictionary of words in text
     
@@ -45,7 +45,7 @@ def cleanText (inputDirectory, outFile):
             
             #split line into its tab deliminated parts
             article = line.split('\t')
-            text = article[1].lower() #portion of article to deal
+            text = eval(article[1].lower()) #portion of article, preserve unicode
         
             #perform regex to alter specified characters
             text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
@@ -73,12 +73,12 @@ def cleanText (inputDirectory, outFile):
         t1 = timeit.default_timer()
         print("Processing complete : " + os.path.basename(inFile) + " : " + str(t1 - t0))
     
-    #output file into same directory as csv file
+    #output file into same directory as csv file, Unicode changed back to ascii
     outFile = inputDirectory + "/cancer_words.csv"
     writeFile = open(outFile, 'w')
     print("Writing file...")
     for word in wordDict: #loop through dictionary
-        writeFile.write(word + ',' + str(wordDict[word]) + '\n')
+        writeFile.write(ascii(word) + ',' + str(wordDict[word]) + '\n')
     writeFile.close()
     
 # main program
