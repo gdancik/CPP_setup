@@ -28,9 +28,10 @@ greatestValues = sorted(wordDict.values(), reverse=True)
 #unable to do a get or find value since there may be duplicate values
 index = 0
 count = 1
-while count <= 100:
+while count <= 100: #desired number of words
     for key in wordDict:
-        if wordDict[key] == greatestValues[index]:
+        if wordDict[key] == greatestValues[index]: #if value of word == sorted list number
+            #lstrip to remove leading 0s
             writeFile.write(key + "," + greatestValues[index].lstrip('0'))
             print("#" + str(count) + " - " + key \
                   + " - " + greatestValues[index].lstrip('0'))
