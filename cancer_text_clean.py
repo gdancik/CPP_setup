@@ -31,15 +31,14 @@ def cleanText (inputDirectory):
 
     wordDict = {} #empty dictionary of words in text
     
-    #characters to be replaced with a null string " ' -
+    #characters to be replaced with a null string: \" OR \' OR \-
     #create pattern for regex single pass replacement in string
-    rep = {'\'': '', '\"': '', '-': ''}
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(rep.keys()))
-    
+    pattern = re.compile("\'|\"|\-")
+
     files = sorted(glob.glob(inputDirectory + "/*.txt"))
     for inFile in files:
         t0 = timeit.default_timer()
+        #print("Opening file : " + os.path.basename(inFile) + "...")
         cancerFile = open(inFile, 'r')
         for line in cancerFile:
             
@@ -48,23 +47,23 @@ def cleanText (inputDirectory):
             text = eval(article[1].lower()) #portion of article, preserve unicode
         
             #perform regex to alter specified characters
-            text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-            
+            text = pattern.sub('', text)
+
             #list of words in title
             words = text.split()
-            
+           
             #remove punctuation
             table = str.maketrans('', '', string.punctuation)
             words = [w.translate(table) for w in words]
             
             #modify list for alphanumeric words and remove words that only consist of numbers 
-            words = [w for w in words if w.isalnum() and not w.isdigit()]
+            words = [w for w in words if w.isalnum() and not w.isdigit() and len(w) > 2]
             
             #load english stop words and remove them from the list of words
             stop_words = stopwords.words('english')
             clean = [w for w in words if not w in stop_words]
             
-            set(clean) #remove duplicates
+            clean = set(clean) #remove duplicates
             for word in clean:
                 if word not in wordDict: #if not in dict, add as key with value 1
                     wordDict[word] = 1
