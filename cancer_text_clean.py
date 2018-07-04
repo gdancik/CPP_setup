@@ -113,100 +113,104 @@ def singleWords (words, wordDict):
 def bigrams (words, wordDict):
 
     
-    #this method tests both words in each bigram, both words are tested in same loop for stopwords
-    #if the second word is invalid, skip all testing of the following bigram.  Altogether skipping
-    #testing of an individual bigram requires that both words be tested after the skip
-    skip = False #skip iterations of loop if next iteration is known to be invalid
-    bigram = list(nltk.bigrams(words)) #break list of words into bigrams
-    stop_words = stopwords.words('english') #load english stopwords
-    clean = [] #empty list
-
-    
-    for b in bigram: #loop through bigrams
-        valid = True
-        
-        if skip == True: #if skip flagged, reset skip to false and continue to next iteration
-            skip = False
-            continue    
-        
-        #if b[1] is not alphanumeric, is a number, or less than or equal to 2 characters
-        if not b[1].isalnum() or b[1].isdigit() or len(b[1]) <= 2:
-            skip = True #flag skip
-            continue #break to next iteration
-        #if b[0] is not alphanumeric, is a number, or less than or equal to 2 characters
-        if not b[0].isalnum() or b[0].isdigit() or len(b[0]) <= 2:            
-            continue #break to next iteration
-                
-        for w in stop_words: #loop through stop words
-            if w == b[1]: #if second word is a stop word flag invalid and skip, break loop
-                skip = True
-                valid = False
-                break
-            elif w == b[0]: #if first word is a stop word flag invalid and break loop
-                valid = False
-                break
-        if valid == True: #if valid append to clean list
-            clean.append(b)
-    
-
-#    #This method will test every bigram, regardless of whether or now we know if not valid
-#    #only need to test b[1] with the exception of the first iteration, flag for the
-#    #next bigram being valid based off the previous b[1]
-#    firstBigram = True #if first bigram need to test b[0], flag true
-#    firstValid = True #bool for validity of b[0]
-#    nextValid = True #method to check if next bigram is valid, flagged from previous b[1]
+#    #this method tests both words in each bigram, both words are tested in same loop for stopwords
+#    #if the second word is invalid, skip all testing of the following bigram.  Altogether skipping
+#    #testing of an individual bigram requires that both words be tested after the skip
+#    skip = False #skip iterations of loop if next iteration is known to be invalid
 #    bigram = list(nltk.bigrams(words)) #break list of words into bigrams
 #    stop_words = stopwords.words('english') #load english stopwords
 #    clean = [] #empty list
+#
 #    
 #    for b in bigram: #loop through bigrams
+#        valid = True
 #        
-#        valid = True #reset/initialize valid as True
+#        if skip == True: #if skip flagged, reset skip to false and continue to next iteration
+#            skip = False
+#            continue    
 #        
-#        if firstBigram == True: #if first bigram
-#            firstBigram = False #set to false
-#            #if alphanumeric, not a number, and longer than 2 characters
-#            if b[0].isalnum() and not b[0].isdigit() and len(b[0]) > 2:
-#                for w in stop_words: #loop through stop_words
-#                    if w == b[0]: #if matched in list of stopwords
-#                        firstValid = False #firstValid is False
-#                        break #exit for loop
-#            else: #invalid word length or outside word parameters
-#                firstValid = False #first word in first bigram is invalid
+#        #if b[1] is not alphanumeric, is a number, or less than or equal to 2 characters
+#        if not b[1].isalnum() or b[1].isdigit() or len(b[1]) <= 2:
+#            skip = True #flag skip
+#            continue #break to next iteration
+#        #if b[0] is not alphanumeric, is a number, or less than or equal to 2 characters
+#        if not b[0].isalnum() or b[0].isdigit() or len(b[0]) <= 2:            
+#            continue #break to next iteration
 #                
-#        #if second word of bigram is alphanumeric, not a number, and longer than 2 characters
-#        if b[1].isalnum() and not b[1].isdigit() and len(b[1]) > 2:
-#            for w in stop_words:
-#                if w == b[1]: #if b[1] is a stopword
-#                    valid = False #set valid to false
-#                    break #exit for loop
-#        else:
-#            valid = False
-#            
-#        #if b[0] in first bigram, b[1], and b[1] from the previous bigram are all valid
-#        if valid == True and nextValid == True and firstValid == True:
-#            clean.append(b) #add bigram to list
-#        elif firstValid == False: #if firstValid is set to false
-#            firstValid = True #set firstValid to true permanently
-#        
-#        if valid == False: #if valid is flagged to false, the next bigram is not valid
-#            nextValid = False
-#        else: #if valid is flagged to true, the next bigram can also be valid
-#            nextValid = True
+#        for w in stop_words: #loop through stop words
+#            if w == b[1]: #if second word is a stop word flag invalid and skip, break loop
+#                skip = True
+#                valid = False
+#                break
+#            elif w == b[0]: #if first word is a stop word flag invalid and break loop
+#                valid = False
+#                break
+#        if valid == True: #if valid append to clean list
+#            clean.append(b)
+    
+
+    #This method will test every bigram, regardless of whether or now we know if not valid
+    #only need to test b[1] with the exception of the first iteration, flag for the
+    #next bigram being valid based off the previous b[1]
+    firstBigram = True #if first bigram need to test b[0], flag true
+    firstValid = True #bool for validity of b[0]
+    nextValid = True #method to check if next bigram is valid, flagged from previous b[1]
+    bigram = list(nltk.bigrams(words)) #break list of words into bigrams
+    stop_words = stopwords.words('english') #load english stopwords
+    clean = [] #empty list
+    
+    for b in bigram: #loop through bigrams
+        
+        valid = True #reset/initialize valid as True
+        
+        if firstBigram == True: #if first bigram
+            firstBigram = False #set to false
+            #if alphanumeric, not a number, and longer than 2 characters
+            if b[0].isalnum() and not b[0].isdigit() and len(b[0]) > 2:
+                for w in stop_words: #loop through stop_words
+                    if w == b[0]: #if matched in list of stopwords
+                        firstValid = False #firstValid is False
+                        break #exit for loop
+            else: #invalid word length or outside word parameters
+                firstValid = False #first word in first bigram is invalid
+                
+        #if second word of bigram is alphanumeric, not a number, and longer than 2 characters
+        if b[1].isalnum() and not b[1].isdigit() and len(b[1]) > 2:
+            for w in stop_words:
+                if w == b[1]: #if b[1] is a stopword
+                    valid = False #set valid to false
+                    break #exit for loop
+        else:
+            valid = False
+            
+        #if b[0] in first bigram, b[1], and b[1] from the previous bigram are all valid
+        if valid == True and nextValid == True and firstValid == True:
+            clean.append(b) #add bigram to list
+        elif firstValid == False: #if firstValid is set to false
+            firstValid = True #set firstValid to true permanently
+        
+        if valid == False: #if valid is flagged to false, the next bigram is not valid
+            nextValid = False
+        else: #if valid is flagged to true, the next bigram can also be valid
+            nextValid = True
         
     clean = set(clean) #remove duplicates
     
     return addToDict(clean, wordDict) #return updated dictionary
 
 
-def writeToFile(outputDirectory, groupType, wordDict):    
+def writeToFile(outputDirectory, groupType, wordDict):
+    
+    threshold = 10 #threshold for minimum count of word/bigram appearance
+    
     #output file into same directory as csv file, Unicode changed back to ascii
     if groupType == "single":
         outFile = inputDirectory + "/cancer_words.csv"
         writeFile = open(outFile, 'w')
         print("Writing file...")
         for word in wordDict: #loop through dictionary
-            writeFile.write(ascii(word) + ',' + str(wordDict[word]) + '\n')
+            if wordDict[word] >= threshold:
+                writeFile.write(ascii(word) + ',' + str(wordDict[word]) + '\n')
         writeFile.close()            
     
     elif groupType == "bigram": #did elif in case we want to add additional groupings
@@ -214,10 +218,11 @@ def writeToFile(outputDirectory, groupType, wordDict):
         writeFile = open(outFile, 'w')
         print("Writing file...")     
         for word in wordDict: #loop through dictionary
-            #print individual words to unique columns
-            writeFile.write(ascii(word[0]) + ',' + ascii(word[1]) + ',' + str(wordDict[word]) + '\n')
-            #both words in same column separated by a space
-#            writeFile.write(ascii(word[0]) + ' ' + ascii(word[1]) + ',' + str(wordDict[word]) + '\n')
+            if wordDict[word] >= threshold:
+                #print individual words to unique columns
+                writeFile.write(ascii(word[0]) + ',' + ascii(word[1]) + ',' + str(wordDict[word]) + '\n')
+                #both words in same column separated by a space
+#                writeFile.write(ascii(word[0]) + ' ' + ascii(word[1]) + ',' + str(wordDict[word]) + '\n')
         writeFile.close()
 
 # main program
@@ -241,5 +246,7 @@ portion = args['portion']
 groupType = groupType.lower()
 portion = portion.lower()
 testValid(groupType, portion)
-
+t2 = timeit.default_timer()
 commonWords(inputDirectory, groupType, portion)
+t3 = timeit.default_timer()
+print(t3 - t2)
