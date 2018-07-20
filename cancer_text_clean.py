@@ -197,7 +197,7 @@ def writeToFile(outputDirectory, groupType, wordDict):
     
     elif groupType == "bigram": #did elif in case we want to add additional groupings
         threshold = 100
-        outFile = inputDirectory + "/cancer_bigrams1.csv"
+        outFile = inputDirectory + "/cancer_bigrams.csv"
         writeFile = open(outFile, 'w')
         print("Writing file...")     
         for word in wordDict: #loop through dictionary
