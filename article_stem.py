@@ -4,9 +4,8 @@ Usage:
 
   article_stem.py [-h] inputFile outputFile fileType(single/bigram)
 
-Code to clean and retrieve words from cancer related text files
-Code runs from command line and reads all text files in the directory 
-and returns a csv file into the same directory
+Code to stem words from csv files containing words and bigrams.  To a new csv file,
+the code writes the stem word/bigrams and a list of the words/bigrams that created them
 
 """
 
