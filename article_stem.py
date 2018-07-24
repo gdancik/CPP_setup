@@ -159,7 +159,7 @@ def writeToFile(stemTable, outFile, fileType):
     
 # main program
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser(description='Clean and retrieve words/bigrams from cancer text files')
+ap = argparse.ArgumentParser(description='Stem words/bigrams in .csv files and write to new updated file')
 ap.add_argument("inputFile", help = "file to be run")
 ap.add_argument("outFile", help = "output file path and name")
 ap.add_argument("fileType", help = "word grouping in text file (single or bigram)")
