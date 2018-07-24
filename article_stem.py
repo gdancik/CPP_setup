@@ -21,7 +21,7 @@ def testArgs(inputFile, fileType):
     if fileType != "single" and fileType != "bigram":
         print("invalid word grouping")
         valid = False   
-    if Path(inputFile).is_file():
+    if not Path(inputFile).is_file():
         print("file not found")
         valid = False   
     if valid == False:
@@ -78,5 +78,5 @@ def wordStem(inputFile):
 #if fileType == "single":
 #    wordStem(inputFile)
 #elif fileType == "bigram":
-#    wordStem(inputFile)
+#    bigramStem(inputFile)
 wordStem(r"C:/users/kewil/test/cancer_txt/cancer_words.csv")
