@@ -2,7 +2,7 @@
 """
 Usage:
 
-  cancer_text_clean.py [-h] inputDirectory groupType(single/bigram) portion(title/abstract)
+  cancer_text_clean.py [-h] inputDirectory outputFile[with filepath] groupType(word/bigram) portion(title/abstract)
 
 Code to clean and retrieve words from cancer related text files
 Code runs from command line and reads all text files in the directory 
@@ -36,14 +36,14 @@ def testValidArguments (groupType, portion):
     if portion != "abstract" and portion != "title":
         print("Invalid segment of text files")         
         valid = False
-    if groupType != "single" and groupType != "bigram":
+    if groupType != "word" and groupType != "bigram":
         print("Invalid grouping of words")
         valid = False
     
     if valid == False:
         exit()
 
-def commonWords (inputDirectory, groupType, portion):
+def commonWords (inputDirectory, outFile, groupType, portion):
     
     wordDict = {} #empty dictionary of words in text
 
@@ -77,7 +77,7 @@ def commonWords (inputDirectory, groupType, portion):
             #once portion of text is broken into a list without punctuation and ', ", - to null
             #regardless of type of grouping, updated dictionary returned after previous passed with
             #partially clean list of words
-            if groupType == "single":
+            if groupType == "word":
                 wordDict = singleWords(words, wordDict, stop_words)
             else:
                 wordDict = bigrams(words, wordDict, stop_words)
@@ -85,7 +85,7 @@ def commonWords (inputDirectory, groupType, portion):
         t1 = timeit.default_timer()
         print("Processing complete : " + os.path.basename(inFile) + " : " + str(t1 - t0))
 
-    writeToFile(inputDirectory, groupType, wordDict)
+    writeToFile(inputDirectory, outFile, groupType, wordDict)
     
 def addToDict (clean, wordDict):    
     #iterate through list
@@ -144,50 +144,14 @@ def bigrams (words, wordDict, stop_words):
         
     clean = set(clean) #remove duplicates
     
-#    #This method will test every bigram, regardless of whether or now we know if not valid
-#    #only need to test b[1] with the exception of the first iteration, flag for the
-#    #next bigram being valid based off the previous b[1]
-#    firstBigram = True #if first bigram need to test b[0], flag true
-#    firstValid = True #bool for validity of b[0]
-#    nextValid = True #method to check if next bigram is valid, flagged from previous b[1]
-#    bigram = list(nltk.bigrams(words)) #break list of words into bigrams
-#
-#    clean = [] #empty list
-#        
-#    for b in bigram: #loop through bigrams
-#        
-#        valid = True #reset/initialize valid as True
-#        
-#        if firstBigram == True: #if first bigram
-#            firstBigram = False #set to false
-#            #if alphanumeric, not a number, and longer than 2 characters
-#            firstValid = testValid(b[0], stop_words)
-#                
-#        #if second word of bigram is alphanumeric, not a number, and longer than 2 characters
-#        valid = testValid(b[1], stop_words)
-#            
-#        #if b[0] in first bigram, b[1], and b[1] from the previous bigram are all valid
-#        if valid == True and nextValid == True and firstValid == True:
-#            clean.append(b) #add bigram to list
-#        elif firstValid == False: #if firstValid is set to false
-#            firstValid = True #set firstValid to true permanently
-#        
-#        if valid == False: #if valid is flagged to false, the next bigram is not valid
-#            nextValid = False
-#        else: #if valid is flagged to true, the next bigram can also be valid
-#            nextValid = True
-#        
-#    clean = set(clean) #remove duplicates
-    
     return addToDict(clean, wordDict) #return updated dictionary
 
 
-def writeToFile(outputDirectory, groupType, wordDict):
+def writeToFile(outputDirectory, outFile, groupType, wordDict):
     
     #output file into same directory as csv file, Unicode changed back to ascii
-    if groupType == "single":
-        threshold = 1000
-        outFile = inputDirectory + "/cancer_words.csv"
+    if groupType == "word":
+        threshold = 5
         writeFile = open(outFile, 'w')
         print("Writing file...")
         for word in wordDict: #loop through dictionary
@@ -196,8 +160,7 @@ def writeToFile(outputDirectory, groupType, wordDict):
         writeFile.close()            
     
     elif groupType == "bigram": #did elif in case we want to add additional groupings
-        threshold = 100
-        outFile = inputDirectory + "/cancer_bigrams.csv"
+        threshold = 5
         writeFile = open(outFile, 'w')
         print("Writing file...")     
         for word in wordDict: #loop through dictionary
@@ -212,6 +175,7 @@ def writeToFile(outputDirectory, groupType, wordDict):
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser(description='Clean and retrieve words/bigrams from cancer text files')
 ap.add_argument("inputDirectory", help = "directory of input files")
+ap.add_argument("outputFile", help = "output filepath and name")
 ap.add_argument("groupType", help = "type of word grouping (single or bigram)")
 ap.add_argument("portion", help = "portion of files (title or abstract)")
 
@@ -223,6 +187,7 @@ if len(sys.argv)==1:
 args = vars(ap.parse_args())
 
 inputDirectory = args['inputDirectory']
+outFile = args['outputFile']
 groupType = args['groupType']
 portion = args['portion']            
 
@@ -230,6 +195,6 @@ groupType = groupType.lower()
 portion = portion.lower()
 testValidArguments(groupType, portion)
 t2 = timeit.default_timer()
-commonWords(inputDirectory, groupType, portion)
+commonWords(inputDirectory, outFile, groupType, portion)
 t3 = timeit.default_timer()
 print(t3 - t2)
