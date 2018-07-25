@@ -88,7 +88,8 @@ def convertText(inputDirectory, outputDirectory):
             #write pmid and text string without last character since it is ' '
             #writeFile.write(article[0] + '\t' + ascii(text[:-1]) + '\n')
             #writeFile.write(article[0] + '\t' + ascii(text) + '\n') #using join in loop
-            writeFile.write(article[0] + '\t' + ascii(' '.join(text)) + '\n') #using join at end
+            text = ' '.join(text)
+            writeFile.write(article[0] + '\t' + ascii(text) + '\n') #using join at end
         
         writeFile.close()
         
