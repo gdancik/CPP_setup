@@ -176,7 +176,7 @@ def writeToFile(outputDirectory, outFile, groupType, wordDict):
 ap = argparse.ArgumentParser(description='Clean and retrieve words/bigrams from cancer text files')
 ap.add_argument("inputDirectory", help = "directory of input files")
 ap.add_argument("outputFile", help = "output filepath and name")
-ap.add_argument("groupType", help = "type of word grouping (single or bigram)")
+ap.add_argument("groupType", help = "type of word grouping (word or bigram)")
 ap.add_argument("portion", help = "portion of files (title or abstract)")
 
 # print help if no arguments are provided
