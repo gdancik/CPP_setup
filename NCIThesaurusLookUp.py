@@ -13,7 +13,8 @@ following code in the first method.  The first method is a single iteration
 through the thesaurus vs an iteration for each code
 """
 
-from pathlib import Path
+import argparse
+import sys
 
 #create multidimensional list from codefile
 def createTable(codeFile):
@@ -100,22 +101,33 @@ def printSyn(outFile, synTable):
 
 def main():  
 
+  # main program
+  # construct the argument parse and parse the arguments
+  ap = argparse.ArgumentParser(description='Look up codes in NCIthesaurus')
+  ap.add_argument("thesaurus", help = "text file containing the thesaurus (FLAT format), from https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/")
+  ap.add_argument("codes", help = "file containing codes, 1 per line")
+  ap.add_argument("outputFile", help = "name of output file")
+
+  # print help if no arguments are provided
+  if len(sys.argv)==1:
+    ap.print_help(sys.stderr)
+    sys.exit(1)
+
+  args = vars(ap.parse_args())
+
+  thesFile = args['thesaurus']
+  codeFile = args['codes']
+  outFile = args['outputFile']
+
     #file names
     
     #codeFile = "codes.txt"
-    thesFile = "Thesaurus.txt"
-    outFile = "synonyms.txt"
+    #outFile = "synonyms.txt"
     
-    while True:
-        codeFile = input("Enter synonym code file: ")
-        if Path(codeFile).is_file():
-            break
-        print("Error: file not found")
-        
-    synTable = createTable(codeFile)
+  synTable = createTable(codeFile)
     
-    synTable = findSyn(thesFile, synTable)
-    printSyn(outFile, synTable)
+  synTable = findSyn(thesFile, synTable)
+  printSyn(outFile, synTable)
     
 if __name__  == "__main__":
     main()
