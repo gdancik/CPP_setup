@@ -20,7 +20,8 @@ import sys
 def createTable(codeFile):
     
     #list of codes
-    synList = [line.strip() for line in open(codeFile)]
+    lines = [line.strip() for line in open(codeFile)]
+    synList = [l for l in lines if l != ""]
     synList = list(set(synList)) #remove duplicates
     
     #create multidimensional list for synonym values
