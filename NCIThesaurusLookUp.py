@@ -13,17 +13,22 @@ following code in the first method.  The first method is a single iteration
 through the thesaurus vs an iteration for each code
 """
 
-from pathlib import Path
+import argparse
+import sys
+
+from nltk.stem import SnowballStemmer
+from words import stemWords 
 
 #create multidimensional list from codefile
 def createTable(codeFile):
     
     #list of codes
-    synList = [line.strip() for line in open(codeFile)]
+    lines = [line.strip() for line in open(codeFile)]
+    synList = [l for l in lines if l != ""]
     synList = list(set(synList)) #remove duplicates
     
     #create multidimensional list for synonym values
-    synTable = [["null" for column in range(3)] for row in range(len(synList))]
+    synTable = [["null" for column in range(4)] for row in range(len(synList))]
     for i in range(len(synList)):
         synTable[i][0] = synList[i]
         
@@ -46,6 +51,7 @@ def findSyn(thesFile, synTable):
                 synTable[index][1] = data[3] #data[3] contains the synonym list
                 modStr = modifiedSyn(data[3]) #run function to modify synonyms
                 synTable[index][2] = modStr
+                synTable[index][3] = data[3].split("|")[0] # first synonym is preferred name
                 index += 1
                 if index >= len(synTable): #stop search once all codes are found
                     break
@@ -76,9 +82,16 @@ def findSynAlt(thesFile, synTable):
 def modifiedSyn(initSyn):    
         
     data = initSyn.lower().split('|') #turn to lowercase list
+
+    # getStems - also takes care of punctuation and words which are too short
+    data = [stemWords(x) for x in data]
+    data = [d for d in data if d is not '']
+
     #order from smallest to largest string to allow single pass through list
     data.sort(key=lambda x: len(x))
-    
+   
+
+
     temp = []
     synStr = ""
     for item in data:
@@ -91,31 +104,47 @@ def modifiedSyn(initSyn):
 #write to desired tab delimited file
 #syn code \t original thesaurus arguments \t modified thesaurus \n
 def printSyn(outFile, synTable):
+
+    from nltk.stem import SnowballStemmer
+    snow = SnowballStemmer('english')
+
     writeFile = open(outFile, 'w')
+    writeFile.write("Code\tTerm\tSynonyms\tPattern\n")
     for i in range(len(synTable)):
-        writeFile.write(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
+        writeFile.write(synTable[i][0] + '\t' + synTable[i][3] +'\t' + synTable[i][1] + '\t' + 
                         synTable[i][2] + '\n')
 #        print(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
 #              synTable[i][2] + '\n')
 
 def main():  
 
+  # main program
+  # construct the argument parse and parse the arguments
+  ap = argparse.ArgumentParser(description='Look up codes in NCIthesaurus')
+  ap.add_argument("thesaurus", help = "text file containing the thesaurus (FLAT format), from https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/")
+  ap.add_argument("codes", help = "file containing codes, 1 per line")
+  ap.add_argument("outputFile", help = "name of output file")
+
+  # print help if no arguments are provided
+  if len(sys.argv)==1:
+    ap.print_help(sys.stderr)
+    sys.exit(1)
+
+  args = vars(ap.parse_args())
+
+  thesFile = args['thesaurus']
+  codeFile = args['codes']
+  outFile = args['outputFile']
+
     #file names
     
     #codeFile = "codes.txt"
-    thesFile = "Thesaurus.txt"
-    outFile = "synonyms.txt"
+    #outFile = "synonyms.txt"
     
-    while True:
-        codeFile = input("Enter synonym code file: ")
-        if Path(codeFile).is_file():
-            break
-        print("Error: file not found")
-        
-    synTable = createTable(codeFile)
+  synTable = createTable(codeFile)
     
-    synTable = findSyn(thesFile, synTable)
-    printSyn(outFile, synTable)
+  synTable = findSyn(thesFile, synTable)
+  printSyn(outFile, synTable)
     
 if __name__  == "__main__":
     main()
