@@ -27,13 +27,16 @@ import sys
 import os
 import timeit
 from nltk.stem import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
 
 def convertText(inputDirectory, outputDirectory):
     
     #characters to be replaced with a null string: \" OR \' OR \-
     #create pattern for regex single pass replacement in string
     pattern = re.compile("\'|\"|\-")
-    stemmer = PorterStemmer()
+    
+    #stemmer = PorterStemmer()
+    stemmer = SnowballStemmer("english")
     
     files = sorted(glob.glob(inputDirectory + "/*.txt"))
     print("Number of *.txt files found in directory '", inputDirectory, "': ", len(files), sep = "")
