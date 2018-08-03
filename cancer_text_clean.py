@@ -20,7 +20,7 @@ Can adjust "text = article[x].lower()" to reflect desired data to be read
 
 import re
 import string
-from nltk.corpus import stopwords
+from words import getWords, testValid, stop_words 
 import nltk
 import glob
 import argparse
@@ -66,14 +66,8 @@ def commonWords (inputDirectory, groupType, portion):
             
             article = line.split('\t')
             text = eval(article[portion].lower())
-            text = pattern.sub('', text)
-            
-            words = text.split()
-            #remove punctuation
-            table = str.maketrans('', '', string.punctuation)
-            words = [w.translate(table) for w in words]
-            stop_words = stopwords.words('english') #load english stopwords
-            
+            words = getWords(text)
+           
             #once portion of text is broken into a list without punctuation and ', ", - to null
             #regardless of type of grouping, updated dictionary returned after previous passed with
             #partially clean list of words
@@ -97,18 +91,6 @@ def addToDict (clean, wordDict):
     
     return wordDict
 
-def testValid(word, stop_words):
-    valid = True
-    if word.isalnum() and not word.isdigit() and len(word) > 2:
-        for w in stop_words:
-            if w == word:
-                valid = False
-                break
-    else:
-        valid = False
-    
-    return valid
-
 def singleWords (words, wordDict, stop_words):
     
     clean = []
@@ -118,7 +100,7 @@ def singleWords (words, wordDict, stop_words):
             clean.append(word)
     
     clean = set(clean) #remove duplicates
-    
+   
     return addToDict(clean, wordDict) #return updated dictionary
     
  

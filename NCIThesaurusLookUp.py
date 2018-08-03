@@ -16,6 +16,9 @@ through the thesaurus vs an iteration for each code
 import argparse
 import sys
 
+from nltk.stem import SnowballStemmer
+from words import stemWords 
+
 #create multidimensional list from codefile
 def createTable(codeFile):
     
@@ -78,9 +81,16 @@ def findSynAlt(thesFile, synTable):
 def modifiedSyn(initSyn):    
         
     data = initSyn.lower().split('|') #turn to lowercase list
+
+    # getStems - also takes care of punctuation and words which are too short
+    data = [stemWords(x) for x in data]
+    data = [d for d in data if d is not '']
+
     #order from smallest to largest string to allow single pass through list
     data.sort(key=lambda x: len(x))
-    
+   
+
+
     temp = []
     synStr = ""
     for item in data:
@@ -93,7 +103,12 @@ def modifiedSyn(initSyn):
 #write to desired tab delimited file
 #syn code \t original thesaurus arguments \t modified thesaurus \n
 def printSyn(outFile, synTable):
+
+    from nltk.stem import SnowballStemmer
+    snow = SnowballStemmer('english')
+
     writeFile = open(outFile, 'w')
+    writeFile.write("Code\tSynonyms\tPattern\n")
     for i in range(len(synTable)):
         writeFile.write(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
                         synTable[i][2] + '\n')
