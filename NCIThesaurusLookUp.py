@@ -28,7 +28,7 @@ def createTable(codeFile):
     synList = list(set(synList)) #remove duplicates
     
     #create multidimensional list for synonym values
-    synTable = [["null" for column in range(3)] for row in range(len(synList))]
+    synTable = [["null" for column in range(4)] for row in range(len(synList))]
     for i in range(len(synList)):
         synTable[i][0] = synList[i]
         
@@ -51,6 +51,7 @@ def findSyn(thesFile, synTable):
                 synTable[index][1] = data[3] #data[3] contains the synonym list
                 modStr = modifiedSyn(data[3]) #run function to modify synonyms
                 synTable[index][2] = modStr
+                synTable[index][3] = data[3].split("|")[0] # first synonym is preferred name
                 index += 1
                 if index >= len(synTable): #stop search once all codes are found
                     break
@@ -108,9 +109,9 @@ def printSyn(outFile, synTable):
     snow = SnowballStemmer('english')
 
     writeFile = open(outFile, 'w')
-    writeFile.write("Code\tSynonyms\tPattern\n")
+    writeFile.write("Code\tTerm\tSynonyms\tPattern\n")
     for i in range(len(synTable)):
-        writeFile.write(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
+        writeFile.write(synTable[i][0] + '\t' + synTable[i][3] +'\t' + synTable[i][1] + '\t' + 
                         synTable[i][2] + '\n')
 #        print(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
 #              synTable[i][2] + '\n')
