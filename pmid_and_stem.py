@@ -18,25 +18,16 @@ After text file is read in, line.split() seperates into 6 parts
 Can adjust text = article[x] to reflect desired data to be read
 """
 
-import re
 import string
-from nltk.corpus import stopwords
 import glob
 import argparse
 import sys
 import os
 import timeit
-from nltk.stem import PorterStemmer
-from nltk.stem.snowball import SnowballStemmer
+
+from words import stemWords
 
 def convertText(inputDirectory, outputDirectory):
-    
-    #characters to be replaced with a null string: \" OR \' OR \-
-    #create pattern for regex single pass replacement in string
-    pattern = re.compile("\'|\"|\-")
-    
-    #stemmer = PorterStemmer()
-    stemmer = SnowballStemmer("english")
     
     files = sorted(glob.glob(inputDirectory + "/*.txt"))
     print("Number of *.txt files found in directory '", inputDirectory, "': ", len(files), sep = "")
@@ -56,42 +47,13 @@ def convertText(inputDirectory, outputDirectory):
             
             article = line.split('\t')
             text = eval(article[1].lower()) + ' ' + eval(article[5].lower())
-            text = pattern.sub('', text)
-            
-            words = text.split()
-            #remove punctuation
-            table = str.maketrans('', '', string.punctuation)
-            words = [w.translate(table) for w in words]
-            stop_words = stopwords.words('english') #load english stopwords
-            
-            #tried this several ways to see if it mattered for efficiency.  Considering the
-            #number of concatenations and the fact that each concatenations creates a new string 
-            #object each time, thus using text += word + ' ' seems bad.
-            #doing a join at the very end seems to take a little longer but does the smallest
-            #amount of memory reallocations for strings
-            
-            #text = "" #empty string of text
-            text = [] #empty list
-            
-            for word in words: #iterate through list of words
-                valid = True #flag true
-                
-                #if alphanumeric, not a number, and more than 2 characters
-                if word.isalnum() and not word.isdigit() and len(word) > 2:
-                    for w in stop_words: #iterate through stop words
-                        if w == word:
-                            valid = False #if found not valid
-                            break     
-                    if valid == True: #if valid stem word and append to string text
-                        word = stemmer.stem(word)
-                        #text += word + ' ' #concatenate in loop
-                        #text = ' '.join([text, word]) #join in loop
-                        text.append(word) #append to list
-            
+
+            text = stemWords(text)
+
             #write pmid and text string without last character since it is ' '
             #writeFile.write(article[0] + '\t' + ascii(text[:-1]) + '\n')
             #writeFile.write(article[0] + '\t' + ascii(text) + '\n') #using join in loop
-            text = ' '.join(text)
+
             writeFile.write(article[0] + '\t' + ascii(text) + '\n') #using join at end
         
         writeFile.close()
