@@ -9,7 +9,7 @@ import timeit
 t1 = timeit.default_timer()
 
 inFile = "meshFile.txt"
-searchTerm = ("Ventral Striatum").lower()
+searchTerm = ("Aggregates, Protein").lower()
 found = False
 
 t1 = timeit.default_timer()
@@ -17,7 +17,7 @@ t1 = timeit.default_timer()
 for line in open(inFile):
     #text[0] = MeshTerm text[1+] are search terms
     text = line.strip('\n').split('\t')
-    for i in range(len(text) - 2):
+    for i in range(len(text) - 1):
         if text[1 + i].lower() == searchTerm: #term names start at index 1
             print("MeshID = " + text[0])
             found = True
