@@ -16,12 +16,13 @@ for record in tree.getiterator("DescriptorRecord"):
     writeFile.write(record.find("DescriptorUI").text)
     #print(record.find("DescriptorUI").text + " - " + record.find("DescriptorName")[0].text)
     
-    concept = record.find("ConceptList")[0]
-    termList = concept.findall("TermList") #list of all TermList
-    for term in termList:
-        for i in range(len(term)):
-            writeFile.write('\t' + term[i].find("String").text) #first string is descriptorName
-            #print(term[i].find("String").text)
+    concepts = record.find("ConceptList")
+    for concept in concepts:
+        termList = concept.findall("TermList") #list of all TermList
+        for term in termList:
+            for i in range(len(term)):
+                writeFile.write('\t' + term[i].find("String").text) #first string is descriptorName`
+                #print(term[i].find("String").text)
     writeFile.write('\n')
 
 writeFile.close()
