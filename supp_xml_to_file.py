@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug  6 12:18:14 2018
+Created on Thu Aug  9 13:33:59 2018
 
 @author: kewil
 """
 
 import xml.etree.ElementTree as ET
 
-tree = ET.parse("desc2018.xml")
+tree = ET.parse("supp2018.xml")
 
-writeFile = open("descFile.txt", 'w')
+writeFile = open("suppFile.txt", 'w')
 
-for record in tree.getiterator("DescriptorRecord"):
+for record in tree.getiterator("SupplementalRecord"):
     
-    writeFile.write(ascii(record.find("DescriptorUI").text))
+    writeFile.write(ascii(record.find("SupplementalRecordUI").text))
     #print(record.find("DescriptorUI").text + " - " + record.find("DescriptorName")[0].text)
     
     concepts = record.find("ConceptList")
@@ -26,4 +26,3 @@ for record in tree.getiterator("DescriptorRecord"):
     writeFile.write('\n')
 
 writeFile.close()
-    
