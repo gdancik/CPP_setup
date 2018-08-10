@@ -34,6 +34,7 @@ writeFile = open("correctedID.txt", 'w')
 notFound = []
 
 for line in notFoundFile:
+    found = False
     #text[0] = ID, text[1] = terms separated by '|'
     text = line.strip('\n').split('\t')
     words = text[1].split('|')
@@ -42,16 +43,18 @@ for line in notFoundFile:
             #print(descDict[word.lower()] + '\t' + text[1])
             #write updated descriptor ID and original full string
             writeFile.write(descDict[word.lower()] + '\t' + text[1] + '\n')
+            found = True
             break
         elif word.lower() in suppDict:
             #print(suppDict[word.lower()] + '\t' + word)
             #write updated supplemental ID and original full string
             writeFile.write(suppDict[word.lower()] + '\t' + text[1] + '\n')
+            found = True
             break
-        else:
-            #append not found ID and original string to notFound list
-            notFound.append([text[0], text[1]])
-            #print(word + " not found")
+    if found == False:
+        #append not found ID and original string to notFound list
+        notFound.append([text[0], text[1]])
+        #print(word + " not found")
             
 #    i += 1
 #    if i == 20:
