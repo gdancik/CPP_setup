@@ -5,25 +5,24 @@ Created on Thu Aug  9 22:22:26 2018
 @author: kewil
 """
 
-print("creating descriptor file dictionary")
+print("adding descriptor file to dictionary")
 descriptorFile = open("descFile.txt")
-descDict = {}
+meshDict = {}
 
 for line in descriptorFile:
     text = line.strip('\n').split('\t')
     for i in range(len(text) - 1):
-        descDict[eval(text[i + 1]).lower()] = eval(text[0]).lower()
+        meshDict[eval(text[i + 1]).lower()] = set(eval(text[0]).split('\t'))
 
 descriptorFile.close()
 
-print("creating supplemental file dictionary")
+print("adding supplemental file to dictionary")
 supplementalFile = open("suppFile.txt")
-suppDict = {}
 
 for line in supplementalFile:
     text = line.strip('\n').split('\t')
     for i in range(len(text) - 1):
-        suppDict[eval(text[i + 1]).lower()] = eval(text[0])
+        meshDict[eval(text[i + 1]).lower()] = set(eval(text[0]).split('\t'))
         
 supplementalFile.close()
 
@@ -39,18 +38,13 @@ for line in notFoundFile:
     text = line.strip('\n').split('\t')
     words = text[1].split('|')
     for word in words: #iterate through words
-        if word.lower() in descDict: #if in descriptor dict
-            #print(descDict[word.lower()] + '\t' + text[1])
+        if word.lower() in meshDict: #if in descriptor dict
+            #print(str(meshDict[word.lower()]).strip('{\'}') + '\t' + text[1])
             #write updated descriptor ID and original full string
-            writeFile.write(descDict[word.lower()] + '\t' + text[1] + '\n')
+            writeFile.write(str(meshDict[word.lower()]).strip('{\'}') + '\t' + text[1] + '\n')
             found = True
             break
-        elif word.lower() in suppDict:
-            #print(suppDict[word.lower()] + '\t' + word)
-            #write updated supplemental ID and original full string
-            writeFile.write(suppDict[word.lower()] + '\t' + text[1] + '\n')
-            found = True
-            break
+
     if found == False:
         #append not found ID and original string to notFound list
         notFound.append([text[0], text[1]])
@@ -64,7 +58,11 @@ notFoundFile.close()
          
 #write at bottom of file IDs and their terms that were not found
 writeFile.write("\nItems not found:\n")
+#print()
+#print("Items not found:")
+#print()
 for item in notFound:
+    #print(item[0] + '\t' + item[1])
     writeFile.write(item[0] + '\t' + item[1] + '\n')
 
 writeFile.close()
