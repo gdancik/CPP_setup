@@ -19,14 +19,20 @@ from pathlib import Path
 
 def testValidArgs (descFile, suppFile, chemFile):
     
+    valid = True
     if not Path(descFile).is_file():
         print("Invalid descriptor file")
-        exit()
-    elif not Path(suppFile).is_file():
+        valid = False
+        
+    if not Path(suppFile).is_file():
         print("Invalid supplemental file")
-        exit()
-    elif not Path(chemFile).is_file():
+        valid= False
+    
+    if not Path(chemFile).is_file():
         print("Invalid chem2pubtator file")
+        valid = False
+    
+    if valid == False:
         exit()
 
 
@@ -60,7 +66,7 @@ def compareSetToFile(idSet, chemFile):
     
     for line in chemFile:
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
-        text = line.split('\t') #only need text[1]
+        text = line.split('\t') #only need text[1] and ignore CHEBI IDs
         if text[1] not in chemID and text[1][:5] != "CHEBI":
             chemID.add(text[1])
             #if not in sets
