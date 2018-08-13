@@ -2,7 +2,7 @@
 """
 Usage:
 
-  update_chem2pubtator.py [-h] descriptorFile supplementalFile chemical2pubtator outFile
+  update_chemical2pubtator.py [-h] descriptorFile supplementalFile chemical2pubtator outFile
 
 Code that compares known IDs in the descriptor and supplemental files against
 chemical2pubtator IDs.  IDs in the chem2pubtator that are not found have their mentions
