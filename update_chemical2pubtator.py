@@ -58,7 +58,6 @@ def compareSetToFile(idSet, chemFile):
     chemFile = open(chemFile)
     chemFile.readline() #remove header
     loc = 0 #location in file
-    notFoundCnt = 0 #count of terms not found
     
     t1 = timeit.default_timer()
     
@@ -69,7 +68,6 @@ def compareSetToFile(idSet, chemFile):
         text = line.split('\t') #only need text[1] and ignore CHEBI IDs
         
         if text[1] not in idSet and text[1][:5] != "CHEBI":
-            
             words = text[2].split('|') #separate mentions
             for word in words:
                 missingDict[text[1]].add(word.lower())
@@ -83,7 +81,7 @@ def compareSetToFile(idSet, chemFile):
 
     chemFile.close()
     
-    print(str(notFoundCnt) + " terms not found in descriptor or supplemental files")
+    print(str(len(missingDict)) + " terms not found in descriptor or supplemental files")
     
     return missingDict
 
@@ -119,9 +117,9 @@ def createUpdatedDict(meshDict, missingDict):
                 newID = meshDict[word]
                 break
         if found == True:
-            for word in words:
-                updatedDict[word] = newID
-            
+            updatedDict[meshID] = newID
+    
+    print("Number of IDs to be updated:", len(updatedDict))
     return updatedDict
             
 def writeCorrectedID(outFile, chemFile, updatedDict, idSet):    
@@ -135,19 +133,15 @@ def writeCorrectedID(outFile, chemFile, updatedDict, idSet):
         
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
         text = line.split('\t') 
-        
+       
         #test to overwrite data from chemical2pubtator file
         if text[1] not in idSet and text[1][:5] != "CHEBI":
-            
+           
             replace = False
-            words = text[2].split('|') #separate mentions  
-            for word in words: #iteratet mentions
-                if word in updatedDict:
-                    #if word in updatedDict, store meshID, flag true and break
-                    replace = True
-                    meshID = updatedDict[word]
-                    break
-            
+            if text[1] in updatedDict :
+                meshID = updatedDict[text[1]]
+                replace = True
+
             if replace == True:
                 #replace the old meshID (text[1]) with new meshID
                 writeFile.write(text[0] + '\t' + meshID + '\t' + \
