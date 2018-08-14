@@ -15,9 +15,10 @@ import timeit
 import argparse
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 
-def testValidArgs (descFile, suppFile, chemFile):
+def testValidArgs(descFile, suppFile, chemFile):
     
     valid = True
     if not Path(descFile).is_file():
@@ -61,19 +62,18 @@ def compareSetToFile(idSet, chemFile):
     
     t1 = timeit.default_timer()
     
-    chemID = set() #set to remove duplicate IDs in chemical2pubtator file
-    missingID = []
+    missingDict = defaultdict(set)
     
     for line in chemFile:
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
         text = line.split('\t') #only need text[1] and ignore CHEBI IDs
-        if text[1] not in chemID and text[1][:5] != "CHEBI":
-            chemID.add(text[1])
-            #if not in sets
-            if text[1] not in idSet:
-                notFoundCnt += 1
-                missingID.append([text[1], text[2]])
-    
+        
+        if text[1] not in idSet and text[1][:5] != "CHEBI":
+            
+            words = text[2].split('|') #separate mentions
+            for word in words:
+                missingDict[text[1]].add(word.lower())
+
         #small test to show progress in reading of file
         loc += 1
         if loc % 5000000 == 0:
@@ -85,62 +85,86 @@ def compareSetToFile(idSet, chemFile):
     
     print(str(notFoundCnt) + " terms not found in descriptor or supplemental files")
     
-    return missingID
+    return missingDict
 
 
-def createDict (descFile, suppFile):
+def createMeshDict(descFile, suppFile):
     
     print("Adding descriptor file to dictionary...")
     meshDict = {}
     for line in open(descFile):
         text = line.strip('\n').split('\t')
         for i in range(len(text) - 1):
-            meshDict[eval(text[i + 1]).lower()] = set(eval(text[0]).split('\t'))
+            meshDict[eval(text[i + 1]).lower()] = eval(text[0])
     
     print("Adding supplemental file to dictionary...")
     for line in open(suppFile):
         text = line.strip('\n').split('\t')
         for i in range(len(text) - 1):
-            meshDict[eval(text[i + 1]).lower()] = set(eval(text[0]).split('\t'))
+            meshDict[eval(text[i + 1]).lower()] = eval(text[0])
             
     return meshDict
 
 
-def correctID (outFile, meshDict, missingID):
+def createUpdatedDict(meshDict, missingDict):
     
-    print("Writing File...")
-    writeFile = open(outFile, 'w')
-    
-    #i = 0
-    notFound = []
-    
-    for item in missingID:
-        
-        found = False        
-        text = item[1]
-        #text[0] = ID, text[1] = terms separated by '|'
-        words = text.split('|')
+    found = False
+    updatedDict = {}
+    print("Creating dictionary with updated meshIDs...")    
+    for meshID in missingDict:        
+        words = missingDict[meshID]        
         for word in words: #iterate through words
-            if word.lower() in meshDict: #if in descriptor dict
-                #print(descDict[word.lower()] + '\t' + text[1])
-                #write updated descriptor ID and original full string, remove {''} encapsulation from set
-                writeFile.write(str(meshDict[word.lower()]).strip('{\'}') + '\t' + text + '\n')
+            if word in meshDict: #if in descriptor dict
                 found = True
+                newID = meshDict[word]
                 break
+        if found == True:
+            for word in words:
+                updatedDict[word] = newID
             
-        if found == False:
-            #append not found ID and original string to notFound list
-            notFound.append([item[0], item[1]])
-            #print(word + " not found")
-                
-    #    i += 1
-    #    if i == 20:
-    #        break
-             
-    #write at bottom of file IDs and their terms that were not found
-    writeFile.write("\nItems not found:\n")
-    for item in notFound:
-        writeFile.write(item[0] + '\t' + item[1] + '\n')
+    return updatedDict
+            
+def writeCorrectedID(outFile, chemFile, updatedDict, idSet):    
+    
+    print("Writing updated file...")
+    writeFile = open(outFile, 'w')
+    loc = 0 #location in file
+    t1 = timeit.default_timer()
+    
+    for line in open(chemFile):
+        
+        #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
+        text = line.split('\t') 
+        
+        #test to overwrite data from chemical2pubtator file
+        if text[1] not in idSet and text[1][:5] != "CHEBI":
+            
+            replace = False
+            words = text[2].split('|') #separate mentions  
+            for word in words: #iteratet mentions
+                if word in updatedDict:
+                    #if word in updatedDict, store meshID, flag true and break
+                    replace = True
+                    meshID = updatedDict[word]
+                    break
+            
+            if replace == True:
+                #replace the old meshID (text[1]) with new meshID
+                writeFile.write(text[0] + '\t' + meshID + '\t' + \
+                                text[2] + '\t' + text[3] + '\n')
+            else: #if meshID not found in current descriptor or supplemental
+                  #data but is also not in dictionary with updated info
+                writeFile.write(line)
+        
+        else:
+            writeFile.write(line)
+        
+        #small test to show progress in reading of file
+        loc += 1
+        if loc % 5000000 == 0:
+            t2 = timeit.default_timer()
+            print(str(loc / 1000000) + " million terms converted: " + str(t2 - t1))
+            t1 = timeit.default_timer()
     
     writeFile.close()
     
@@ -171,12 +195,15 @@ testValidArgs(descFile, suppFile, chemFile)
 #create set of mesh ids
 idSet = createFileSet(descFile, suppFile)
 
-#create list of ids in chemical2pubtator that are not found in suppFile or descFile
-missingID = compareSetToFile(idSet, chemFile)
+#create dict of ids in chemical2pubtator that are not found in suppFile or descFile
+missingDict = compareSetToFile(idSet, chemFile)
 
 #create dictionary containing data in descFile and suppFile
-meshDict = createDict (descFile, suppFile)
+meshDict = createMeshDict(descFile, suppFile)
 
-#write file with corrected IDs
-correctID(outFile, meshDict, missingID)
+#create dictionary containing updated meshIDs and their words
+updatedDict = createUpdatedDict(meshDict, missingDict)
+
+#write new file with corrected IDs
+writeCorrectedID(outFile, chemFile, updatedDict, idSet)
 
