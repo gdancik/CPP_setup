@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug  6 17:06:25 2018
+
+@author: dancikg
+"""
 # this is a module to test whether a word is valid
 
 import re
