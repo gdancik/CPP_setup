@@ -1,4 +1,6 @@
 """
+@author: dancikg
+
 Processes pubtator files ensuring each line has only one ID; multiple lines
 are created for rows having multiple IDs separated by a comma or semi-colon
 
