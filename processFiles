@@ -1,0 +1,95 @@
+#!/bin/bash -e
+
+#Note: may want to check for valid dcast username and password first
+
+if [ $# -ne 2 ]
+    then
+    echo "Usage: processFiles dcast.username dcast.password"
+    echo "Processes files in download/ and outputs to download/data/"
+    exit -1
+fi
+
+echo 
+echo "Checking download directory for invalid files..."
+
+# commands to process various scripts
+cmdMesh="python mesh/xml_to_file.py download/desc2018.xml 
+                download/data/desc2018.txt descriptor"
+cmdSupp="python mesh/xml_to_file.py download/supp2018.xml 
+                download/data/supp2018.txt supplementary"
+
+cmdChem="python pubtator/processChemical2pubtator.py
+                download/data/desc2018.txt 
+                download/data/supp2018.txt 
+                download/chemical2pubtator 
+                download/data/chemical2pubtator_processed"
+cmdDisease="python pubtator/processDisease2pubtator.py $1 $2 
+                download/disease2pubtator 
+                download/data/disease2pubtator_processed"
+cmdGenes="python pubtator/processGene2pubtator.py 
+                download/gene2pubtator 1 
+                download/data/gene2pubtator_processed"
+cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubtator download/data/mutation2pubtator_processed"
+
+
+declare -a files
+declare -a cmd
+files[0]="desc2018.xml";         cmd[0]=$cmdMesh
+files[1]="supp2018.xml";         cmd[1]=$cmdSupp
+files[2]="chemical2pubtator";    cmd[2]=$cmdChem
+files[3]="disease2pubtator";     cmd[3]=$cmdDisease
+files[4]="gene2pubtator";        cmd[4]=$cmdGenes
+files[5]="mutation2pubtator";    cmd[5]=$cmdMutation
+
+
+# check for required directories
+required=(download download/data download/data/completed)
+for i in "${required[@]}"
+do
+    if [ ! -e $i ]; then
+        echo "Error: the following required directory was not found: $i"
+        exit
+    fi
+done
+
+
+# check for invalid files
+invalid=""
+for entry in download/*
+do
+  file1="$(basename "$entry")"
+
+  if [[ " ${files[@]} " =~ "$file1" ]]; then
+   # do nothing
+   :
+  elif [ $file1 != "data" ]; then
+    invalid="$invalid $file1"
+  fi
+done
+
+if [ "$invalid" != '' ]
+then
+    echo "Error: invalid files found: $invalid"
+    exit
+fi
+
+
+# process files
+total=${#files[*]}
+#total=3
+for (( i=0; i<=$(( $total -1 )); i++ ))
+    do
+    ff="download/${files[i]}"
+        if [ -f $ff ]; then
+            echo "Processing file: $ff"
+            echo "cmd: ${cmd[i]}"
+            echo
+            ${cmd[i]}
+            echo "Moving $ff to download/data/completed"
+            mv $ff "download/data/completed/${files[i]}"
+            echo 
+        else
+            echo "Note: $ff not found, and will not be processed" 
+        fi
+done
+
