@@ -5,7 +5,7 @@
 if [ $# -ne 2 ]
     then
     echo "Usage: processFiles dcast.username dcast.password"
-    echo "Processes files in download/ and outputs to download/data/"
+    echo "Processes pubtator and mesh files in download/ and outputs to download/data/"
     exit -1
 fi
 
