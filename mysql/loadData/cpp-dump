@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+if [ $# -ne 2 ]
+    then
+    echo "Usage: cpp-dump username password"
+    echo "Dumps dcast database"
+    exit -1
+fi
+
+
+DATE=`date +%Y-%m-%d`
+echo "creating database dump"
+
+mysqldump --user=$1 --password=$2 --databases dcast --add-drop-database --ignore-table dcast.PubArticleText > dcast_dump_$DATE.sql
+
+echo "dump saved in dcast_dump_$DATE.sql"

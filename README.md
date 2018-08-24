@@ -1,20 +1,8 @@
-Python scripts to assist with gdancik's CPP repository
+# CPP setup
 
-################################################
-# process new pubtator and mesh files for dcast
-################################################
+This file contains scripts for setting up CPP, which is a work in progress.
 
-./processFiles - processes pubtator and mesh files in download directory
+For more information see: 
+- [CPP front-end](https://github.com/gdancik/CPP) 
+- [AACR abstract](http://cancerres.aacrjournals.org/content/78/13_Supplement/3286.short) 
 
-################################################
-# retreive and process pubmed baseline for dcast 
-################################################
-
-# retreive pubmed files
-python pubmed/pubMedRetrieval.py baseline outputDir email 
-
-# convert from xml to text (for articles in dcast)
-python pubmed/write_full_pubmed_to_text.py name password inputDir outputDir 
-
-# stem titles and abstracts
-python stem/pmid_and_stem.py inputDirectory outputDirectory 
