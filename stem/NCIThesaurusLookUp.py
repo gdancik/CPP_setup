@@ -15,6 +15,7 @@ through the thesaurus vs an iteration for each code
 
 import argparse
 import sys
+from collections import defaultdict
 
 from nltk.stem import SnowballStemmer
 from words import stemWords 
@@ -58,26 +59,38 @@ def findSyn(thesFile, synTable):
                 
     return synTable
 
-def findSynAlt(thesFile, synTable):
-    
-    #method to allow for invalid codes to be returned as null without
-    #causing all following codes to be returned as null
+def createThesaurus(thesFile) :
+    readFile = open(thesFile)
+    d = defaultdict(lambda : 'code_not_found')
+    for line in readFile :
+        data = line.split('\t')
+        d[data[0]] = data[3]
+    return d
 
-    for i in range(len(synTable)):
-        with open(thesFile) as readFile: #open thesaurus
-            for line in readFile:
-                data = line.split('\t') #thesaurus is tab delimited, split to list
-                if data[0] == synTable[i][0]: #data[0] contains code identifiers
-                    synTable[i][1] = data[3] #data[3] contains the synonym list
-                    modStr = modifiedSyn(data[3]) #run function to modify synonyms
-                    synTable[i][2] = modStr
-                    break
-        if (synTable[i][1] == "null"):
-            print(synTable[i][0] + " is an invalid code")
-    
-    return synTable
-    
-    
+
+def codeDict(codeFile, thesaurus) :
+
+    # create dictionary
+    lines = [line.strip() for line in open(codeFile)]
+    lines = [l for l in lines if l!='']
+    resDict = defaultdict(list)
+    for l in lines :
+        for key in l.split("|") :
+            resDict[l]+=[thesaurus[key]]
+
+
+    # collapse any terms
+
+    for key,value in resDict.items() :
+        title = '|'.join([x.split('|')[0] for x in value])
+        synonyms = '|'.join(value)
+        pattern = modifiedSyn(synonyms)
+        resDict[key] = {'title':title, 'pattern':pattern, 'synonyms':synonyms} 
+    return resDict
+
+
+
+
 #takes string of synonyms from the thesaurus and removes redundancy 
 def modifiedSyn(initSyn):    
         
@@ -105,16 +118,10 @@ def modifiedSyn(initSyn):
 #syn code \t original thesaurus arguments \t modified thesaurus \n
 def printSyn(outFile, synTable):
 
-    from nltk.stem import SnowballStemmer
-    snow = SnowballStemmer('english')
-
     writeFile = open(outFile, 'w')
-    writeFile.write("Code\tTerm\tSynonyms\tPattern\n")
-    for i in range(len(synTable)):
-        writeFile.write(synTable[i][0] + '\t' + synTable[i][3] +'\t' + synTable[i][1] + '\t' + 
-                        synTable[i][2] + '\n')
-#        print(synTable[i][0] + '\t' + synTable[i][1] + '\t' + 
-#              synTable[i][2] + '\n')
+    writeFile.write("Code\tTitle\tPattern\tSynonyms\n")
+    for code, value in synTable.items() :
+        writeFile.write(code + '\t' + value['title'] + '\t' + value['pattern'] + '\t' + value['synonyms'] + '\n')
 
 def main():  
 
@@ -136,15 +143,11 @@ def main():
   codeFile = args['codes']
   outFile = args['outputFile']
 
-    #file names
-    
-    #codeFile = "codes.txt"
-    #outFile = "synonyms.txt"
-    
   synTable = createTable(codeFile)
-    
-  synTable = findSyn(thesFile, synTable)
-  printSyn(outFile, synTable)
+   
+  thesaurus = createThesaurus(thesFile)
+  res = codeDict(codeFile, thesaurus)
+  printSyn(outFile, res)
     
 if __name__  == "__main__":
     main()
