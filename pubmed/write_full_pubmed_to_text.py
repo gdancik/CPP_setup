@@ -97,11 +97,10 @@ def createTxtFromXML(filePath, cnx):
         cursor = cnx.cursor(buffered=True)
         
         for item in pubmed_dict:
-            if item['delete'] != 'False': #if entry not updated later
-                cursor.execute(query + item['pmid']) #query + current items pmid
-                row = cursor.fetchone() #fetches result of query, either None or matching value
-                if row != None : #if matching value found
-                     writeToFile(item, writeFile) #write item in pubmed_dict to file
+            cursor.execute(query + item['pmid']) #query + current items pmid
+            row = cursor.fetchone() #fetches result of query, either None or matching value
+            if row != None : #if matching value found
+                 writeToFile(item, writeFile) #write item in pubmed_dict to file
         writeFile.close() #next iteration will be new file name, this file is no longer used
         cursor.close()
         t1 = timeit.default_timer()
