@@ -105,8 +105,8 @@ def modifiedSyn(initSyn):
 #syn code \t original thesaurus arguments \t modified thesaurus \n
 def printSyn(outFile, synTable):
 
-#    from nltk.stem import SnowballStemmer
-#    snow = SnowballStemmer('english')
+    from nltk.stem import SnowballStemmer
+    snow = SnowballStemmer('english')
 
     writeFile = open(outFile, 'w')
     writeFile.write("Code\tTerm\tSynonyms\tPattern\n")
