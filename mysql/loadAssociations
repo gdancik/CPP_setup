@@ -1,0 +1,54 @@
+#!/bin/bash -e
+
+if [ $# -ne 3 ]
+    then
+    echo "Usage: loadAssociations dcast.username dcast.password dataDir"
+    echo "Loads data into dcast from data directory, requiring the following files:"
+    echo -e "\t\tdata/HumanGeneIDs.csv"
+    echo -e "\t\tdata/paList.txt"
+    echo -e "\t\tdata/MeshTreeHierarchyWithScopeNotes.txt"
+    echo -e "\t\tdata/gene2pubtator_processed"
+    echo -e "\t\tdata/disease2pubtator_processed"
+    echo -e "\t\tdata/chemical2pubtator_processed"
+    echo
+    echo "Script must be called from parent of loadData directory"
+    exit -1
+fi
+
+
+currdir=`pwd`
+function finish {
+  cd $currdir
+  echo "Exiting now, return to $currdir"
+}
+trap finish EXIT
+
+
+# check for required files
+required=(HumanGeneIDs.csv paList.txt MeshTreeHierarchyWithScopeNotes.txt gene2pubtator_processed disease2pubtator_processed chemical2pubtator_processed)
+
+
+cd $3
+
+
+for i in "${required[@]}"
+do
+    if [ ! -e $i ]; then
+        echo "Error: the following required file was not found: $i"
+        exit
+    fi
+done
+
+cd $currdir
+echo "Backing up database and writing out current PMIDs"
+./loadData/cpp-dump $1 $2
+./loadData/cpp-output-pmids $1 $2
+cd $3
+
+mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadGenes.sql 
+mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadPubGeneData.sql 
+mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMeshTerms.sql 
+mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadPubMeshData.sql 
+mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadPharmActionData.sql 
+mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadChemicalData.sql 
+mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMutationData.sql 

@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+if [ $# -ne 2 ]
+    then
+    echo "Usage: cpp-output-pmids username password"
+    echo "outputs pmids (taken from PubGene)"
+    exit -1
+fi
+
+DATE=`date +%Y-%m-%d`
+echo "outputting pmids"
+
+file="pmids_$DATE.txt"
+mysql --user=$1 --password=$2 -e 'select distinct PMID from dcast.PubGene;' > $file 
+
+echo "pmids saved in $file"
