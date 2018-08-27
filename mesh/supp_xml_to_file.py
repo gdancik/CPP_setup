@@ -16,7 +16,7 @@ for record in tree.getiterator("SupplementalRecord"):
     writeFile.write(ascii(record.find("SupplementalRecordUI").text))
     #print(record.find("DescriptorUI").text + " - " + record.find("DescriptorName")[0].text)
     
-    concepts = record.find("ConceptList")
+    concepts = record.findall("ConceptList")
     for concept in concepts:
         termList = concept.findall("TermList") #list of all TermList
         for term in termList:
