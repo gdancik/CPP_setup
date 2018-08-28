@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Aug 25 17:07:13 2018
-
-@author: kewil
-"""
-
-# -*- coding: utf-8 -*-
-"""
 @author kewilliams
 
 Usage:
