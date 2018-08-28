@@ -19,9 +19,25 @@ python pubmed/write_full_pubmed_to_text.py name password inputDir outputDir
 # stem titles and abstracts
 python stem/pmid_and_stem.py inputDirectory outputDirectory 
 
+
+
 ################################################
-# upload data to dcast
+# upload PubTator Associations
 ################################################
 
-#upload article text from directory of *.txt files
-Rscript mysql/Upload_ArticleText_to_table.R directory
+loadAssociations dcast.username dcast.password dataDir
+
+
+
+################################################
+# load cancer-term associations 
+################################################
+
+#upload article text from pubmed stemmed *.txt files
+Rscript mysql/loadArticleText.R directory [drop]
+
+# lookup patterns in NCI thesaurus
+python stem/NCIThesaurusLookUp.py ../misc_data_files/Thesaurus.txt codes.txt cancerterms.txt
+
+# load CancerTerms into DCAST
+mysql/loadCancerTerms
