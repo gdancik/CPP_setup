@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Aug 25 17:07:13 2018
+
+@author: kewil
+"""
+
+# -*- coding: utf-8 -*-
+"""
 @author kewilliams
 
 Usage:
@@ -15,13 +22,42 @@ positional arguments:
   outputDirectory  directory of output files
 
 Tests against dcast database for matching pmids in the PubGene table
+
+
+simplified sample XML file format (Relevant Data Only):
+PubmedArticle
+    MedlineCitation
+        PMID - text contains PMID
+        Article
+            Journal
+                JournalIssue
+                    PubDate
+                        Year - text contains PubDate
+                        MedlineDate - text contains Year and Month
+                Title - text contains Journal Name
+            ArticleTitle - Title of Article
+            Abstract
+                AbstractText - text contains abstract, if multiple tags can contain info
+            AuthorList
+                Author - findall for authors
+                    LastName - text
+                    Initials - text
+        ChemicalList - Chemical Information
+            Chemical
+                RegistryNumber
+                NameOfSubstance - tag 'UI' has ID / text has name
+        MeshHeadingList - Mesh Information
+            MeshHeading
+                DescriptorName - tag 'UI' has ID / text has name
+                QualifierName - tag 'UI' has ID / text has name
+    
 """
 
 import shutil #move file location
-import pubmed_parser as pp
 import timeit
 import mysql.connector
 from mysql.connector import errorcode
+from lxml import etree #slightly faster than xml.etree.ElementTree, also no need to unzip
 
 import sys
 import argparse
@@ -29,10 +65,102 @@ import glob
 import os
 
 
-#parse xml into dictionary
-def createPubDict (file):
-    pubmed_dict = pp.parse_medline_xml(file)
-    return pubmed_dict
+#retrieve PMID
+def getPmid(medline):
+    
+    pmid = medline.find('PMID')
+    if pmid is not None:
+        pmid = pmid.text
+    else:
+        pmid = ''
+    return pmid
+
+#retrieve article title
+def getTitle(article):
+
+    title = article.find('ArticleTitle')    
+    if title is not None:
+        title = title.text
+    else:
+        title = ''
+    return title
+
+#retrieve authors, formatted (Initials + ' ' + LastName  + '; ') for each
+def getAuthor(article):
+    
+    authorList = []
+    #no authors needs to be tested from the article branch
+    if article.find('AuthorList') is not None:
+        authors = article.findall('AuthorList/Author')
+        for author in authors:
+            initials = author.find('Initials')
+            lastName = author.find('LastName')
+            if initials is not None and lastName is not None:
+                authorString = initials.text + ' ' + lastName.text
+            elif lastName is not None:
+                authorString = lastName.text 
+            elif initials is not None:
+                authorString = initials.text
+            else:
+                authorString = ''
+            authorList.append(authorString)
+        return '; '.join(authorList)
+    else:
+        return ''
+            
+#retrieve journal
+def getJournal(journal):
+
+    journal = journal.find('Title')
+    if journal is not None:
+        journal = journal.text
+    else:
+        journal = ''
+    return journal
+        
+#retrieve pubDate
+def getPubDate(pubDate):
+    
+    year = pubDate.find('Year')
+    
+    if year is not None:
+        year = year.text
+    #if no child Year, child MedlineDate may replace it. Formatted 'Year Month'
+    #elif and else case very rare, would harm efficiency to do a .find every time
+    elif pubDate.find('MedlineDate') is not None:
+        year = pubDate.find('MedlineDate').text.split(' ')[0]
+    else:
+        year = ''
+    return year
+
+#retrieve abstract
+def getAbstract(article):
+    
+    if article.find('Abstract/AbstractText') is not None:
+        abstracts = article.findall('Abstract/AbstractText')
+        if len(abstracts) == 1: #if one abstract, ignore tags and get text
+            abstractText = abstracts[0].text
+        elif len(abstracts) > 1:
+            abstractText = ''
+            #multiple abstracts typically come with hidden headings in tags
+            #tags typically have a NlmCategory attribute, if not that then Label attribute
+            for abstract in abstracts:
+                if (abstract.attrib.get('NlmCategory', 'null')) != 'null':
+                    abstractText += abstract.attrib.get('NlmCategory', '') + ' ' + abstract.text + ' '
+                elif (abstract.attrib.get('Label', 'null')) != 'null':
+                    abstractText += abstract.attrib.get('Label', '') + ' ' + abstract.text + ' '
+                else:
+                    abstractText += abstract.text + ' '
+            abstractText = abstractText[:-1] #remove trailing ' '
+        else:
+            abstractText = ''
+    #if Abstract/AbstractText is None, abstract text may be out of place in Abstract child        
+    elif article.find('Abstract') is not None:
+        abstractText = article.find('Abstract').text
+    else:
+        abstractText = ''
+    return abstractText
+
 
 #database access for pmids
 def dCastDatabase (userName, password, inputDirectory, outputDirectory):
@@ -48,13 +176,12 @@ def dCastDatabase (userName, password, inputDirectory, outputDirectory):
         else:
             print(err)
     else:
-        #if valid connection to database, create txt files
         createTxtFromXML(inputDirectory, cnx)
         cnx.close()
 
-def createTxtFromXML(filePath, cnx):    
+def createTxtFromXML(filePath, cnx):
 
-    t2 = timeit.default_timer()
+    #t2 = timeit.default_timer() #begin timer for whole program
     
     query = ("select PMID from PubGene where PMID = ") #generic query
     errorStr = "" #for try / catch
@@ -73,8 +200,7 @@ def createTxtFromXML(filePath, cnx):
         t0 = timeit.default_timer()
         
         try:
-            #create dictionary from retrieved xml.gz
-            pubmed_dict = createPubDict(inFile)
+            pubTree = etree.parse(inFile)
         
         except :            
             if not os.path.exists(outputDirectory + ("/ERRORS/")): #create folder for failed file
@@ -87,7 +213,8 @@ def createTxtFromXML(filePath, cnx):
             f.close()
             errorCount += 1
             continue #skip to next file
-                 
+        
+             
         outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
         
         writeFile = open(outFile, 'w') #open file for data transfer
@@ -97,33 +224,39 @@ def createTxtFromXML(filePath, cnx):
         #buffered allows all results to be fetched, but only returns one to code
         cursor = cnx.cursor(buffered=True)
         
-        for item in pubmed_dict:
-            cursor.execute(query + item['pmid']) #query + current items pmid
-            row = cursor.fetchone() #fetches result of query, either None or matching value
-            if row != None : #if matching value found
-                 writeToFile(item, writeFile) #write item in pubmed_dict to file
-        writeFile.close() #next iteration will be new file name, this file is no longer used
+        for pubmedArticle in pubTree.getiterator('PubmedArticle'):
+            cursor.execute(query + getPmid(pubmedArticle.find('MedlineCitation')))
+            row = cursor.fetchone()
+            if row != None:
+                writeToFile(pubmedArticle, writeFile)
+            pubmedArticle.clear() #clearing nodes slightly increases speed
         cursor.close()
         t1 = timeit.default_timer()
         print("Successful Write : " + outFile + " : " + str(t1 - t0))   
-        #time.sleep(1)
     
-    t3 = timeit.default_timer()
-    print("\nTotal time of execution: " + str(t3 - t2))
-    
-    #unnecessary unless try / catch 
+    #t3 = timeit.default_timer() #end time for whole program
+    #print("\nTotal time of execution: " + str(t3 - t2))
     if errorCount is not 0 :
         print("\nWarning:", errorCount, "files could not written. See", outputDirectory + "/ERRORS/log.txt for more information")
+        
 
 
-def writeToFile (item, writeFile):
-
-    writeFile.write(ascii(item['pmid']) + '\t' + 
-                    ascii(item['title']) + '\t' + 
-                    ascii(item['author']) + '\t' + 
-                    ascii(item['journal']) + '\t' +
-                    ascii(item['pubdate']) + '\t' + 
-                    ascii(item['abstract']) + '\n')
+def writeToFile (pubmedArticle, writeFile):
+    
+    #multiple calls from same child node instead of starting from root
+    medline = pubmedArticle.find('MedlineCitation')
+    pmid = getPmid(medline)
+    article = medline.find('Article')
+    title = getTitle(article)
+    author = getAuthor(article)
+    abstract = getAbstract(article)
+    journal = article.find('Journal')
+    journalTitle = getJournal(journal)
+    pubDate = journal.find('JournalIssue/PubDate')
+    date = getPubDate(pubDate)
+    
+    writeFile.write(ascii(pmid) + '\t' + ascii(title) + '\t' + ascii(author) + '\t' +
+                    ascii(journalTitle) + '\t' + ascii(date) + '\t' + ascii(abstract) + '\n')
     
 
 # main program
@@ -147,5 +280,4 @@ password = args['password']
 inputDirectory = args['inputDirectory']
 outputDirectory = args['outputDirectory']
 
-#path for xml and text files, only necessary change for user
 dCastDatabase(userName, password, inputDirectory, outputDirectory)
