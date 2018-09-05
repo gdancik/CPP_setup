@@ -6,7 +6,7 @@ Created on Wed Aug 29 09:11:39 2018
 
 usage:
     
-    retrieve_title_abstract.py [-h] pmidFile outDirectory
+    retrieve_title_abstract.py [-h] pmidFile outDirectory email
     
 Takes file containing pmids and queries them against the pubmed database in batches of 
 500.  Retrieve pmid, title, author, journal, publish year, and abstract and formats
@@ -15,6 +15,7 @@ them to match data already present in database
 positional arguments:
     pmidFile - file containing pmids to be queried
     outDirectory - directory for output files
+    email - email for Entrez
 
 """
 
@@ -25,9 +26,13 @@ import time
 import os
 import sys
 import argparse
+from pathlib import Path
 
-Entrez.email = "kewilliams86@gmail.com"
 
+def testPmidFile(pmidFile):
+    if not Path(pmidFile).is_file():
+        print("Invalid pmidFile")
+        exit()
 
 def entrezQuery(idList, outFile):
     
@@ -73,31 +78,27 @@ def readFile (pmidFile, outDir):
     if not os.path.exists(outDir):
         os.makedirs(outDir)
     
-    count = 0 #tracker for time.sleep to stagger entrez queries
     number = 1 #tracker to identify new files for each query
-    idList = [] #list of ids to be queried, chunk by 500 or less
-    
-    for line in open(pmidFile):
-        idList.append(line.strip())
-        count += 1
-        if count % 500 == 0: #when 500 ids in list
-            outFile = outDir + "entrez_query_" + str(number) + ".txt"
-            entrezQuery(idList, outFile) #query and write file
-            idList = [] #reset idList 
-            number += 1 #increase number for entrez query
-            time.sleep(1) #sleep
-            
-    if count % 500 != 0: #if remainder of files in idList
-        outFile = outDir + "entrez_query_" + str(number) + ".txt"
-        entrezQuery(idList, outFile) #query and write file
 
+    idList = [i.strip() for i in open(pmidFile).readlines()] #readlines in file, strip '\n'
+        
+    while len(idList) != 0: #while list is not empty
+
+        outFile = outDir + "entrez_query_" + str(number) + ".txt" #file name
+        print("Writing file: " + outFile)
+        number += 1 #increment file number
+        entrezQuery(idList[:500], outFile) #query first 500
+        idList = (idList[500:]) #remove first 500
+        time.sleep(1) #wait 1 second
+        
 
 #outDir = r"C:/Users/kewil/test/pmid/"
 #pmidFile = r"C:/Users/kewil/Summerbio/misc_data_files/pmids.txt"
 
-ap = argparse.ArgumentParser(description="Query selected pmids against pubmed db")
+ap = argparse.ArgumentParser(description="query selected pmids against pubmed db")
 ap.add_argument("pmidFile", help="designated file containing pmids")
 ap.add_argument("outDirectory", help="output directory for query files")
+ap.add_argument("email", help="email for entrez queries")
 
 # print help if no arguments are provided
 if len(sys.argv)==1:
@@ -108,5 +109,8 @@ args = vars(ap.parse_args())
 
 pmidFile = args['pmidFile']
 outDir = args['outDirectory']
+entrezEmail = args['email']
 
+testPmidFile(pmidFile)
+Entrez.email = entrezEmail
 readFile(pmidFile, outDir)
