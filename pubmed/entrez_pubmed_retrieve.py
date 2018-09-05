@@ -6,7 +6,7 @@ Created on Wed Aug 29 09:11:39 2018
 
 usage:
     
-    retrieve_title_abstract.py [-h] pmidFile outDirectory email
+    entrez_pubmed_retrieve.py [-h] pmidFile outDirectory email
     
 Takes file containing pmids and queries them against the pubmed database in batches of 
 500.  Retrieve pmid, title, author, journal, publish year, and abstract and formats
