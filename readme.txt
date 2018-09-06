@@ -22,11 +22,10 @@ python stem/pmid_and_stem.py inputDirectory outputDirectory
 
 
 ################################################
-# upload PubTator Associations
+# upload PubTator Associations (cd to mysq/)
 ################################################
 
 loadAssociations dcast.username dcast.password dataDir
-
 
 
 ################################################

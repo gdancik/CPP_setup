@@ -12,6 +12,7 @@ if [ $# -ne 3 ]
     echo -e "\t\tdata/chemical2pubtator_processed"
     echo
     echo "Script must be called from parent of loadData directory"
+    echo "Note: this will delete DCAST database if it exists"
     exit -1
 fi
 
