@@ -2,6 +2,16 @@
 
 #Note: may want to check for valid dcast username and password first
 
+# The following files must be obtained from PubTator or MeSH and put in
+# a download/ directory
+
+# desc2018.xml       
+# supp2018.xml         
+# chemical2pubtator    
+# disease2pubtator     
+# gene2pubtator        
+# mutation2pubtator    
+
 if [ $# -ne 2 ]
     then
     echo "Usage: processFiles dcast.username dcast.password"
