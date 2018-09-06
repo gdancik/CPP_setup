@@ -6,6 +6,8 @@ select "Creating DCAST.PubGene..." as '';
 -- ------------------------------------------------------
 --  DDL for Table PubGene  
 -- ------------------------------------------------------
+DROP TABLE IF EXISTS DCAST.PubGene;
+
 CREATE TABLE DCAST.PubGene 
    (	PMID INT  NOT NULL, 
 	    GeneID INT NOT NULL

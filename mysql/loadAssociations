@@ -12,7 +12,6 @@ if [ $# -ne 3 ]
     echo -e "\t\tdata/chemical2pubtator_processed"
     echo
     echo "Script must be called from parent of loadData directory"
-    echo "Note: this will delete DCAST database if it exists"
     exit -1
 fi
 
@@ -42,8 +41,8 @@ done
 
 cd $currdir
 echo "Backing up database and writing out current PMIDs"
-./loadData/cpp-dump $1 $2
-./loadData/cpp-output-pmids $1 $2
+./dump/cpp-dump $1 $2
+./dump/cpp-output-pmids $1 $2
 cd $3
 
 mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadGenes.sql 

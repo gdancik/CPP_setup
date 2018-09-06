@@ -1,14 +1,18 @@
 Python scripts to assist with gdancik's CPP repository
 
-################################################
-# process new pubtator and mesh files for dcast
-################################################
+######################################################
+# (1) process new pubtator and mesh files for dcast
+#       Required with DB creation: yes
+#       Required with DB updates: yes
+######################################################
 
 ./processFiles - processes pubtator and mesh files in download directory
 
-################################################
-# retreive and process pubmed baseline for dcast 
-################################################
+#############################################################
+# (2) retreive and process pubmed baseline for dcast 
+#       Required with DB creation: yes
+#       Required with DB updates: no
+#############################################################
 
 # retreive pubmed files
 python pubmed/pubMedRetrieval.py baseline outputDir email 
@@ -21,16 +25,19 @@ python stem/pmid_and_stem.py inputDirectory outputDirectory
 
 
 
-################################################
-# upload PubTator Associations (cd to mysq/)
-################################################
+##############################################################
+# (3) upload PubTator Associations (cd to mysq/)
+#       Required with DB creation: yes
+#       Required with DB updates: yes
+##############################################################
 
 loadAssociations dcast.username dcast.password dataDir
 
-
-################################################
-# load cancer-term associations 
-################################################
+##############################################################
+# (4) load cancer-term associations 
+#       Required with DB creation: yes
+#       Required with DB updates: no 
+##############################################################
 
 #upload article text from pubmed stemmed *.txt files
 Rscript mysql/loadArticleText.R directory [drop]
@@ -40,3 +47,11 @@ python stem/NCIThesaurusLookUp.py ../misc_data_files/Thesaurus.txt codes.txt can
 
 # load CancerTerms into DCAST
 mysql/loadCancerTerms
+
+#########################################################################
+# (4) Identify new PMIDs (these would not have cancer-term associations) 
+#       Required with DB creation: no 
+#       Required with DB updates: yes
+#########################################################################
+
+python pubmed/getNewPMIDs 

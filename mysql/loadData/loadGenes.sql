@@ -1,11 +1,12 @@
-/*!40000 DROP DATABASE IF EXISTS `dcast`*/;
+select "CREATING DATABASE (if not exists) ..." as '';
 
-select "CREATING DATABASE..." as '';
-CREATE DATABASE DCAST;
+CREATE DATABASE IF NOT EXISTS DCAST;
 
 set GLOBAL local_infile = "ON";
 
 USE DCAST;
+
+DROP TABLE IF EXISTS DCAST.GENES;
 
 select "CREATING DCAST.GENES..." as '';
 -- ------------------------------------------------------

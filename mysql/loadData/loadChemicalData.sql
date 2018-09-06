@@ -4,6 +4,8 @@ set GLOBAL local_infile = "ON";
 
 select 'creating PubChem table...' as '' ;
 
+DROP TABLE IF EXISTS DCAST.PubChem;
+
 -- ------------------------------------------------------
 --  DDL for Table PubChem
 -- ------------------------------------------------------
