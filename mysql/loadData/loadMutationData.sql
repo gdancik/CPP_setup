@@ -7,7 +7,9 @@ select 'creating PubMut table...' as '' ;
 -- ------------------------------------------------------
 --  DDL for Table PubMut
 -- ------------------------------------------------------
-  CREATE TABLE PubMut 
+DROP TABLE IF EXISTS DCAST.PubMut;
+
+CREATE TABLE PubMut 
    (PMID INT NOT NULL, 
 	  MutID VARCHAR(40) NOT NULL 
    ) ;

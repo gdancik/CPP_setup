@@ -73,9 +73,11 @@ print("Reading", file, "...")
 # open file
 f = open(file)
 
+rows = [r.replace("MESH:","") for r in f]
+
 # keep rows that are cancer-related
 rows = map(lambda x: x.split('\t'), 
-           filter(lambda x: x.split()[1] in cancerMeshIDs, f)
+           filter(lambda x: x.split()[1] in cancerMeshIDs, rows)
        )
 
 

@@ -3,7 +3,9 @@ use DCAST;
 -- ------------------------------------------------------
 --  DDL for Table PubChem
 -- ------------------------------------------------------
-  CREATE TABLE PharmActionTerms 
+DROP TABLE IF EXISTS DCAST.PharmActionTerms;
+
+CREATE TABLE PharmActionTerms 
    ( MeshID VARCHAR(15) NOT NULL, 
 	  Term VARCHAR(300)
    ) ;

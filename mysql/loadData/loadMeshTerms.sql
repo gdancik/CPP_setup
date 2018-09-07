@@ -9,6 +9,8 @@ select "Creating DCAST.MeshTerms..." as '';
 --  DDL for MeshTerms table (we may split this into two 
 --     tables) 
 -- ------------------------------------------------------
+
+DROP TABLE IF EXISTS DCAST.MeshTerms;
 CREATE TABLE DCAST.MeshTerms(TreeID varchar(40), MeshID varchar(15), Term varchar(255));
 
 # Import MeshTerms data from csv

@@ -2,10 +2,22 @@
 
 #Note: may want to check for valid dcast username and password first
 
+# The following files must be obtained from PubTator or MeSH and put in
+# a download/ directory
+
+# desc2018.xml       
+# supp2018.xml         
+# chemical2pubtator    
+# disease2pubtator     
+# gene2pubtator        
+# mutation2pubtator    
+
 if [ $# -ne 2 ]
     then
     echo "Usage: processFiles dcast.username dcast.password"
-    echo "Processes pubtator and mesh files in download/ and outputs to download/data/"
+    echo "Processes pubtator and mesh files in download/ and creates:
+    download/processed - the processed data
+    download/completed - the original files"
     exit -1
 fi
 
@@ -14,22 +26,22 @@ echo "Checking download directory for invalid files..."
 
 # commands to process various scripts
 cmdMesh="python mesh/xml_to_file.py download/desc2018.xml 
-                download/data/desc2018.txt descriptor"
+                download/processed/desc2018.txt descriptor"
 cmdSupp="python mesh/xml_to_file.py download/supp2018.xml 
-                download/data/supp2018.txt supplementary"
+                download/processed/supp2018.txt supplementary"
 
 cmdChem="python pubtator/processChemical2pubtator.py
-                download/data/desc2018.txt 
-                download/data/supp2018.txt 
+                download/processed/desc2018.txt 
+                download/processed/supp2018.txt 
                 download/chemical2pubtator 
-                download/data/chemical2pubtator_processed"
+                download/processed/chemical2pubtator_processed"
 cmdDisease="python pubtator/processDisease2pubtator.py $1 $2 
                 download/disease2pubtator 
-                download/data/disease2pubtator_processed"
+                download/processed/disease2pubtator_processed"
 cmdGenes="python pubtator/processGene2pubtator.py 
                 download/gene2pubtator 1 
-                download/data/gene2pubtator_processed"
-cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubtator download/data/mutation2pubtator_processed"
+                download/processed/gene2pubtator_processed"
+cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubtator download/processed/mutation2pubtator_processed"
 
 
 declare -a files
@@ -43,7 +55,10 @@ files[5]="mutation2pubtator";    cmd[5]=$cmdMutation
 
 
 # check for required directories
-required=(download download/data download/data/completed)
+mkdir -p download/processed/
+mkdir -p download/completed/
+required=(download download/processed download/completed)
+
 for i in "${required[@]}"
 do
     if [ ! -e $i ]; then
@@ -62,7 +77,7 @@ do
   if [[ " ${files[@]} " =~ "$file1" ]]; then
    # do nothing
    :
-  elif [ $file1 != "data" ]; then
+  elif [ $file1 != "processed" ] && [ $file1 != "completed" ]; then
     invalid="$invalid $file1"
   fi
 done
@@ -85,8 +100,8 @@ for (( i=0; i<=$(( $total -1 )); i++ ))
             echo "cmd: ${cmd[i]}"
             echo
             ${cmd[i]}
-            echo "Moving $ff to download/data/completed"
-            mv $ff "download/data/completed/${files[i]}"
+            echo "Moving $ff to download/completed/"
+            mv $ff "download/completed/${files[i]}"
             echo 
         else
             echo "Note: $ff not found, and will not be processed" 

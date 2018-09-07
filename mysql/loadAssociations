@@ -41,8 +41,8 @@ done
 
 cd $currdir
 echo "Backing up database and writing out current PMIDs"
-./loadData/cpp-dump $1 $2
-./loadData/cpp-output-pmids $1 $2
+./dump/cpp-dump $1 $2
+./dump/cpp-output-pmids $1 $2
 cd $3
 
 mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadGenes.sql 
