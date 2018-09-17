@@ -8,14 +8,7 @@ Usage:
 
     python pubtator_db_query.py [-h] username password pubType inputFile outDirectory
 
-To deal with multiple file types, parameter pubType is used
-should be able to handle gene, disease, chemical and mutation
-
-Can be updated for other pubtator files by altering getFileTypeInfo
-If multiple queries needed can return an additional query string there
-use null or "" if only one query needed and test for it in getPubSet
-
-Creating multiple sets will probably require a new function
+Currently handles gene, disease, or chemical
 """
 
 import mysql.connector
@@ -32,8 +25,14 @@ def getFileTypeInfo(pubType, outDir): #update for more pubtator filetypes
         os.makedirs(outDir)
     
     if pubType == "gene":
-        query = ("select GeneID from Genes")
-        outFile = outDir + "gene2pubtator_processed"
+        query = "select GeneID from Genes"
+        outFile = outDir + "gene2pubtator_updated"
+    elif pubType == "chemical":
+        query = "select MeshID from pubchem"
+        outFile = outDir + "chemical2pubtator_updated"
+    elif pubType == "disease":
+        query = "select MeshID from pubmesh"
+        outFile = outDir + "disease2pubtator_updated"
     else:
         print("Unknown pubtator file type")
         exit()
@@ -68,7 +67,21 @@ def getPubSet(cnx, query):
     return pubSet
 
 
-def writeToFile(pubSet, inFile, outFile):
+#genes were encapsulated with '' in the file, disease and chemical were not
+def pubTest(pubType, pubSet, text):
+    
+    test = False
+    
+    if pubType == "chemical" or pubType == "disease":
+        if text in pubSet:
+            test = True
+    if pubType == "gene":
+        if int(text) in pubSet:
+            test = True
+    
+    return test
+
+def writeToFile(pubSet, pubType, inFile, outFile):
     
     matchCnt = 0 #counter for number of files written
     lineCnt = 0 #counter to display progress in code
@@ -76,28 +89,28 @@ def writeToFile(pubSet, inFile, outFile):
     readFile = open(inFile)    
     writeFile = open(outFile, 'w')
     print("Reading pubtator file...")
-    #writeFile.write(readFile.readline().strip() + '\n')
-    line = readFile.readline()
-    writeFile.write(line.strip() + '\n')
+    writeFile.write(readFile.readline().strip() + '\n')
+    
     for line in readFile:
         lineCnt += 1
         text = line.strip().split('\t')
-        if eval(text[1]) in pubSet:
-            matchCnt += 1
-            writeFile.write(line.strip() + '\n')
-        
+        if not line.strip() == "": #some lines contained only "" or "\n"
+            if pubTest(pubType, pubSet, text[1]) == True: #calls function to test validity
+                matchCnt += 1
+                writeFile.write(line.strip() + '\n')        
         if lineCnt % 1000000 == 0:
-            print(str(lineCnt) + " lines read")
-            
+            print(str(lineCnt) + " lines read")            
+#        if matchCnt == 10000:
+#            break
     print(str(lineCnt) + " total lines read")
-    print(str(matchCnt) + " genes written to file")
+    print(str(matchCnt) + " items written to file")
     writeFile.close()
     
 
 ap = argparse.ArgumentParser(description='Extract dcast article information from PubMed xml files')
 ap.add_argument("username", help="dcast username")
 ap.add_argument("password", help="dcast password")
-ap.add_argument("pubType", help="pubtator processed file type (gene etc)")
+ap.add_argument("pubType", help="pubtator processed file type (gene/disease/chemical)")
 ap.add_argument("inputFile", help = "input files name")
 ap.add_argument("outputDirectory", help = "directory of output files")
 
@@ -110,7 +123,7 @@ args = vars(ap.parse_args())
 
 userName = args['username']
 password = args['password']
-pubType = args['pubType']
+pubType = args['pubType'].lower()
 inFile = args['inputFile']
 outDir = args['outputDirectory']
 
@@ -121,6 +134,6 @@ outFile = output[1] #output file name
 
 cnx = dCastDatabase(userName, password)  #get to database
 pubSet = getPubSet(cnx, query) #get set of wanted values from database
-writeToFile(pubSet, inFile, outFile) #write data to file
+writeToFile(pubSet, pubType, inFile, outFile) #write data to file
 
 cnx.close() #close connection
