@@ -16,6 +16,7 @@ from mysql.connector import errorcode
 import os
 import sys
 import argparse
+import timeit
 
 def getFileTypeInfo(pubType, outDir): #update for more pubtator filetypes
     
@@ -83,6 +84,7 @@ def pubTest(pubType, pubSet, text):
 
 def writeToFile(pubSet, pubType, inFile, outFile):
     
+    t1 = timeit.default_timer()
     matchCnt = 0 #counter for number of files written
     lineCnt = 0 #counter to display progress in code
     
@@ -106,6 +108,9 @@ def writeToFile(pubSet, pubType, inFile, outFile):
     print(str(matchCnt) + " items written to file")
     writeFile.close()
     
+    t2 = timeit.default_timer()
+    print("completion time: " + str(t2 - t1))
+    
 
 ap = argparse.ArgumentParser(description='Extract dcast article information from PubMed xml files')
 ap.add_argument("username", help="dcast username")
@@ -126,7 +131,6 @@ password = args['password']
 pubType = args['pubType'].lower()
 inFile = args['inputFile']
 outDir = args['outputDirectory']
-
 
 output = getFileTypeInfo(pubType, outDir) #get tailored info for putator filetype
 query = output[0] #query for database
