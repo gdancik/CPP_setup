@@ -19,6 +19,18 @@ CREATE TABLE DCAST.PubGene
 select "Loading PubGene..." as '';
 LOAD DATA LOCAL INFILE 'gene2pubtator_processed' INTO TABLE DCAST.PubGene IGNORE 1 LINES;
 
+select "Building indices..." as '';
+-- ------------------------------------------------------
+--  DDL for Index PubGene_IX1
+-- ------------------------------------------------------
+CREATE INDEX PubGene_IX1 ON DCAST.PubGene (GeneID, PMID);
+
+-- ------------------------------------------------------
+--  DDL for Index PubGene_IX2
+-- ------------------------------------------------------
+CREATE INDEX PubGene_IX2 ON DCAST.PubGene (PMID);
+
+
 
 -- ------------------------------------------------------
 --  Update PubGene to include only GeneIDs in Genes table  
@@ -48,15 +60,4 @@ create table t2 as select Genes.GeneID, Genes.SYMBOL from Genes
 inner join PubGene on Genes.GeneID = PubGene.GeneID group by Genes.GeneID, Genes.SYMBOL;
 drop table Genes;
 rename table t2 to Genes;
-
--- ------------------------------------------------------
---  DDL for Index PubGene_IX1
--- ------------------------------------------------------
-CREATE INDEX PubGene_IX1 ON DCAST.PubGene (GeneID, PMID);
-
--- ------------------------------------------------------
---  DDL for Index PubGene_IX2
--- ------------------------------------------------------
-CREATE INDEX PubGene_IX2 ON DCAST.PubGene (PMID);
-
 

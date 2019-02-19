@@ -51,4 +51,4 @@ mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMeshTerms.s
 mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadPubMeshData.sql 
 mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadPharmActionData.sql 
 mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadChemicalData.sql 
-mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMutationData.sql 
+mysq --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMutationData.sql 
