@@ -30,11 +30,13 @@ create INDEX MeshIndex ON PubMesh (MeshID);
 --  and remove duplicates using group by  
 -- ------------------------------------------------------
 
+/*
 select "Filtering PubMesh based on PubGene..." as '';
 SET SQL_SAFE_UPDATES = 0;
 delete from PubMesh
 where PubMesh.PMID NOT in
     (select distinct PMID from PubGene);
+*/
 
 -- ------------------------------------------------------
 --  Update PubGene to include only articles in PubMesh  

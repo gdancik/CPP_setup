@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+if [ $# -ne 3 ]
+    then
+    echo "Usage: loadAssociations dcast.username dcast.password dataDir"
+    echo "Loads data into dcast from data directory, requiring the following files:"
+    echo -e "\t\tdata/HumanGeneIDs.csv"
+    echo -e "\t\tdata/paList.txt"
+    echo -e "\t\tdata/MeshTreeHierarchyWithScopeNotes.txt"
+    echo -e "\t\tdata/gene2pubtator_processed"
+    echo -e "\t\tdata/disease2pubtator_processed"
+    echo -e "\t\tdata/chemical2pubtator_processed"
+    echo -e "\t\tdata/mutation2pubtator_processed"
+    echo
+    echo "Script must be called from parent of loadDataPythonFiltering directory"
+    exit -1
+fi
+
+
+currdir=`pwd`
+function finish {
+  cd $currdir
+  echo "Exiting now, return to $currdir"
+}
+trap finish EXIT
+
+
+SECONDS=0
+
+
+# check for required files
+required=(HumanGeneIDs.csv paList.txt MeshTreeHierarchyWithScopeNotes.txt gene2pubtator_processed disease2pubtator_processed chemical2pubtator_processed mutation2pubtator_processed)
+
+
+cd $3
+
+for i in "${required[@]}"
+do
+    if [ ! -e $i ]; then
+        echo "Error: the following required file was not found: $i"
+        exit
+    fi
+done
+
+cd $currdir
+echo "Backing up database and writing out current PMIDs"
+#./dump/cpp-dump $1 $2
+#./dump/cpp-output-pmids $1 $2
+cd $3
+
+scriptDir="$currdir/loadDataPythonFiltering"
+
+# load Genes 
+mysql --user=$1 --password=$2 --local-infile  < $scriptDir/loadGenes.sql 
+
+# load PubGene
+mv gene2pubtator_processed gene2pubtator_processed1
+python $scriptDir/limit_to_ids.py gene2pubtator_processed1 1 gene2pubtator_processed --id-file HumanGeneIDs.csv --id-delim ','
+mysql --user=$1 --password=$2 --local-infile  < $scriptDir/loadPubGeneData.sql 
+
+# load MeshTerms
+mysql --user=$1 --password=$2 --local-infile < $scriptDir/loadMeshTerms.sql 
+
+# load PubMesh
+mv disease2pubtator_processed disease2pubtator_processed1
+python $scriptDir/limit_to_ids.py disease2pubtator_processed1 0 disease2pubtator_processed --username $1 --password $2 
+mysql --user=$1 --password=$2 --local-infile  < $scriptDir/loadPubMeshData.sql 
+
+# load PharmAction
+mysql --user=$1 --password=$2 --local-infile < $scriptDir/loadPharmActionData.sql 
+
+# load PubChem
+mv chemical2pubtator_processed chemical2pubtator_processed1
+python $scriptDir/limit_to_ids.py chemical2pubtator_processed1 0 chemical2pubtator_processed --username $1 --password $2 
+mysql --user=$1 --password=$2 --local-infile < $scriptDir/loadChemicalData.sql 
+
+# loadPubMesh
+mv mutation2pubtator_processed mutation2pubtator_processed1
+python $scriptDir/limit_to_ids.py mutation2pubtator_processed1 0 mutation2pubtator_processed --username $1 --password $2 
+mysql --user=$1 --password=$2 --local-infile < $scriptDir/loadMutationData.sql 
+
+
+duration=$SECONDS
+echo "Total processing time is $(($duration / 60)) minutes and $(($duration % 60)) seconds."

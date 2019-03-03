@@ -33,6 +33,7 @@ create INDEX PMIDIndex ON PubMut (PMID);
 -- ------------------------------------------------------
 -- Keep only articles appearing in PubGene 
 -- ------------------------------------------------------
+/*
 select 'keeping only PubGene articles...' as '';
 DELETE FROM PubMut
 WHERE NOT EXISTS (
@@ -40,7 +41,7 @@ WHERE NOT EXISTS (
     FROM PubGene
     WHERE PubMut.PMID = PubGene.PMID
 );
-
+*/
 
 -- ------------------------------------------------------
 --  Update PubMut to remove duplicates   

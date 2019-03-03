@@ -35,10 +35,12 @@ create INDEX MeshIndex ON PubChem (MeshID);
 --  and remove duplicates using group by  
 -- ------------------------------------------------------
 
+/*
 select 'filtering out non PubGene PMIDs...' as '';
 SET SQL_SAFE_UPDATES = 0;
 DELETE FROM PubChem WHERE NOT EXISTS
     (SELECT NULL FROM PubGene WHERE PubGene.PMID = PubChem.PMID);
+*/
 
 -- ------------------------------------------------------
 --  Update PubChem to include only pharmacologically  

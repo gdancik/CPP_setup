@@ -3,11 +3,13 @@
 
 Processes pubtator files ensuring each line has only one ID; multiple lines
 are created for rows having multiple IDs separated by a comma or semi-colon
+Genes not in geneFile are removed
 
 positional arguments:
   inputFile   the input file, which is tab delimited
   index       the index of the column to check, starting at 0
   outputFile  the output file
+  geneFile    csv file containing valid geneIDs in 1st column
 """
 
 # For example, 
@@ -19,14 +21,20 @@ positional arguments:
 import argparse
 import re
 import sys
+from col_to_set import col_to_set
 
 # processes the file
-def processMulti(file, index, outfile) :
+def processMulti(file, index, outfile, geneFile) :
+    genes = col_to_set(geneFile, ',', 0)
+    print("# valid genes:", len(genes))
     fin = open(file)
     f = open(outfile, "w")
     for r in fin :
-        s = splitRow(r.strip(),index)
-        f.write(s)
+        
+        row = r.strip()
+        if row[index] in genes :
+            s = splitRow(row,index)
+            f.write(s)
 
 # splits row into multiple rows
 # changes, eg. col1\t A,B,C \t col3, ...
@@ -55,6 +63,7 @@ ap = argparse.ArgumentParser(description='Processes pubtator files ensuring each
 ap.add_argument("inputFile", help = "the input file, which is tab delimited")
 ap.add_argument("index", help = "the index of the column to check, starting at 0", type = int)
 ap.add_argument("outputFile", help = "the output file")
+ap.add_argument("geneFile", help = "csv file containing valid geneIDs in 1st column")
 
 # print help if no arguments are provided
 if len(sys.argv)==1:
@@ -66,7 +75,8 @@ args = vars(ap.parse_args())
 inFile = args['inputFile']
 index = args['index']
 outFile = args['outputFile']
+geneFile = args['geneFile']
 
 print("processing file", inFile, "...")
-processMulti(inFile, index, outFile)
+processMulti(inFile, index, outFile, geneFile)
 print("results output to:", outFile)

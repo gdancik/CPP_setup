@@ -24,6 +24,9 @@ function finish {
 trap finish EXIT
 
 
+SECONDS=0
+
+
 # check for required files
 required=(HumanGeneIDs.csv paList.txt MeshTreeHierarchyWithScopeNotes.txt gene2pubtator_processed disease2pubtator_processed chemical2pubtator_processed)
 
@@ -41,8 +44,9 @@ done
 
 cd $currdir
 echo "Backing up database and writing out current PMIDs"
-./dump/cpp-dump $1 $2
-./dump/cpp-output-pmids $1 $2
+#./dump/cpp-dump $1 $2
+#./dump/cpp-output-pmids $1 $2
+
 cd $3
 
 mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadGenes.sql 
@@ -51,4 +55,8 @@ mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMeshTerms.s
 mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadPubMeshData.sql 
 mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadPharmActionData.sql 
 mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadChemicalData.sql 
-mysq --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMutationData.sql 
+mysql --user=$1 --password=$2 --local-infile < $currdir/loadData/loadMutationData.sql 
+
+
+duration=$SECONDS
+echo "Total processing time is $(($duration / 60)) minutes and $(($duration % 60)) seconds."

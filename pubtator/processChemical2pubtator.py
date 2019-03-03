@@ -134,7 +134,7 @@ def writeCorrectedID(outFile, chemFile, updatedDict, idSet):
     for line in open(chemFile):
         
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
-        text = line.split('\t') 
+        text = line.strip().split('\t') 
        
         #test to overwrite data from chemical2pubtator file
         if text[1] not in idSet and text[1][:5] != "CHEBI":
