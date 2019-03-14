@@ -35,7 +35,7 @@ for (i in 1:nrow(res)){
   # split patterns by "|" and add surrounding quotes, so that phrases are matched exactly
   # (otherwise "a b" will match "a" or "b")
   finalstring <- paste0('"', unlist(strsplit(pattern, "\\|")), '"', collapse = " ")
-  cat("(", i, ") Finding PMIDs containing: ", finalstring, , "\n", sep = "")
+  cat("(", i, ") Finding PMIDs containing: ", finalstring, "\n", sep = "")
   
   
   # Inserting the PMIDs of the Articles that contain words or phrase that matches
