@@ -21,3 +21,4 @@ INTO TABLE DCAST.MeshTerms COLUMNS TERMINATED BY '\t';
 CREATE INDEX MeshTerms_IX1 ON DCAST.MeshTerms (TreeID, MeshID);
 create index MeshTerms_IX2 on MeshTerms(MeshID);
 
+update MeshTerms set Term = REPLACE(Term,'"','');
