@@ -1,16 +1,20 @@
 #!/bin/bash -e
 
+
+
 #Note: may want to check for valid dcast username and password first
 
 # The following files must be obtained from PubTator or MeSH and put in
 # a download/ directory
 
-# desc2018.xml       
-# supp2018.xml         
-# chemical2pubtator    
+# desc2019.xml      ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/ 
+# supp2019.xml         
+# chemical2pubtator   https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/PubTator/ 
 # disease2pubtator     
 # gene2pubtator        
 # mutation2pubtator    
+
+# mysql connector needs to be installed: pip install  mysql-connector
 
 if [ $# -ne 2 ]
     then
@@ -25,14 +29,14 @@ echo
 echo "Checking download directory for invalid files..."
 
 # commands to process various scripts
-cmdMesh="python mesh/xml_to_file.py download/desc2018.xml 
-                download/processed/desc2018.txt descriptor"
-cmdSupp="python mesh/xml_to_file.py download/supp2018.xml 
-                download/processed/supp2018.txt supplementary"
+cmdMesh="python mesh/xml_to_file.py download/desc2019.xml 
+                download/processed/desc2019.txt descriptor"
+cmdSupp="python mesh/xml_to_file.py download/supp2019.xml 
+                download/processed/supp2019.txt supplementary"
 
 cmdChem="python pubtator/processChemical2pubtator.py
-                download/processed/desc2018.txt 
-                download/processed/supp2018.txt 
+                download/processed/desc2019.txt 
+                download/processed/supp2019.txt 
                 download/chemical2pubtator 
                 download/processed/chemical2pubtator_processed"
 cmdDisease="python pubtator/processDisease2pubtator.py $1 $2 
@@ -47,8 +51,8 @@ cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubt
 
 declare -a files
 declare -a cmd
-files[0]="desc2018.xml";         cmd[0]=$cmdMesh
-files[1]="supp2018.xml";         cmd[1]=$cmdSupp
+files[0]="desc2019.xml";         cmd[0]=$cmdMesh
+files[1]="supp2019.xml";         cmd[1]=$cmdSupp
 files[2]="chemical2pubtator";    cmd[2]=$cmdChem
 files[3]="disease2pubtator";     cmd[3]=$cmdDisease
 files[4]="gene2pubtator";        cmd[4]=$cmdGenes
