@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@author gdancik 
+@author gdancik (some code from @kewilliams86) 
 
 Usage:
 

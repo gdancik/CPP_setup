@@ -34,11 +34,14 @@ CREATE INDEX PubGene_IX2 ON DCAST.PubGene (PMID);
 -- ------------------------------------------------------
 --  Update PubGene to include only GeneIDs in Genes table  
 -- ------------------------------------------------------
+
+/*
 select "Removing PubGenes where genes are not in Genes table" as '';
 SET SQL_SAFE_UPDATES = 0;
 delete from PubGene 
 where PubGene.GeneID NOT in 
     (select GeneID from Genes);
+*/
 
 -- ------------------------------------------------------
 --  Update PubGene to remove duplicates   

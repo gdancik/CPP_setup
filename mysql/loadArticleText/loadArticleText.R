@@ -1,18 +1,34 @@
 # Upload multiple text files into database table
 
 cargs <- commandArgs(TRUE)
-if (length(cargs) != 1) {
-  stop("Usage: Rscript Upload_ArticleText_to-table.R directory")
+if (length(cargs) <1 | length(cargs) > 2) {
+  cat("Usage: Rscript loadArticleText.R directory [drop]\n")
+  cat("\tdirectory - directory containing pubmed txt files\n")
+  cat("\tdrop - optional, will drop PubArticleText if specified\n")
+  stop()
 }
 
 library(RMySQL)
 
+drop <- "none"
+# Path to data files
+if (length(cargs) == 2) {
+    drop = cargs[2]
+    if (drop != "drop") {
+        stop("Invalid second argument. If specified, second argument must be 'drop'")
+    }
+}
+
+path = cargs[1]
+file.names <- dir(path, pattern = ".txt")
+
 # connect to the database CPP
 con = dbConnect(MySQL(), group = "CPP")
 
-# Path to data files
-path = cargs[1]
-file.names <- dir(path, pattern = ".txt")
+if (drop == "drop") {
+  qry <- paste0("DROP TABLE PubArticleText")
+  dbGetQuery(con, qry)
+} 
 
 # Create table PubArticleText if it does not exist
 if (!dbExistsTable(con,"PubArticleText")){

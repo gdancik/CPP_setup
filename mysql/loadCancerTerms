@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+if [ $# -ne 3 ]
+    then
+    echo "Usage: loadCancerTerms dcast.username dcast.password dataDir"
+    echo "Loads CancerTerms into dcast from data directory, requiring the following files:"
+    echo -e "\t\tdata/cancerterms.txt"
+    echo
+    echo "Script must be called from parent of loadData directory"
+    exit -1
+fi
+
+
+currdir=`pwd`
+function finish {
+  cd $currdir
+  echo "Exiting now, return to $currdir"
+}
+trap finish EXIT
+
+
+# check for required files
+required=(cancerterms.txt) 
+
+cd $3
+
+
+for i in "${required[@]}"
+do
+    if [ ! -e $i ]; then
+        echo "Error: the following required file was not found: $i"
+        exit
+    fi
+done
+
+mysql --user=$1 --password=$2 --local-infile  < $currdir/loadData/loadCancerTerms.sql 
