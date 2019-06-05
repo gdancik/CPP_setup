@@ -44,7 +44,8 @@ cmdDisease="python pubtator/processDisease2pubtator.py $1 $2
                 download/processed/disease2pubtator_processed"
 cmdGenes="python pubtator/processGene2pubtator.py 
                 download/gene2pubtator 1 
-                download/processed/gene2pubtator_processed"
+                download/processed/gene2pubtator_processed
+				data_for_mysql/HumanGeneIDs.csv"
 cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubtator download/processed/mutation2pubtator_processed"
 
 
