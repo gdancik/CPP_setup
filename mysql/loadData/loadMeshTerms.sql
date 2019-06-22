@@ -22,3 +22,5 @@ CREATE INDEX MeshTerms_IX1 ON DCAST.MeshTerms (TreeID, MeshID);
 create index MeshTerms_IX2 on MeshTerms(MeshID);
 
 update MeshTerms set Term = REPLACE(Term,'"','');
+
+update meshterms set TreeID = 'C04.000', Term = 'Neoplasms (General)', MeshID = 'D009369G' where TreeID = 'C04'
