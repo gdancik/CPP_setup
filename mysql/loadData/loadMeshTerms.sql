@@ -23,4 +23,7 @@ create index MeshTerms_IX2 on MeshTerms(MeshID);
 
 update MeshTerms set Term = REPLACE(Term,'"','');
 
-update meshterms set TreeID = 'C04.000', Term = 'Neoplasms (General)' where TreeID = 'C04'
+select "Filtering mesh terms..." as '';
+delete from MeshTerms where TreeID not like 'C04%';
+update meshterms set TreeID = 'C04.000', Term = 'Neoplasms (unspecified)' where TreeID = 'C04';
+
