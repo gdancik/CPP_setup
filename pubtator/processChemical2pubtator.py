@@ -102,7 +102,7 @@ def createMeshDict(descFile, suppFile):
         text = line.strip('\n').split('\t')
         for i in range(len(text) - 1):
             meshDict[eval(text[i + 1]).lower()] = eval(text[0])
-            
+           
     return meshDict
 
 

@@ -3,6 +3,7 @@
 # TO DO
 # 1. may want to check for valid dcast username and password first
 # 2. do not hardcore year in desc2019.xml and supp2019.xml
+# 3. Check that desc2019 and supp2019 are present (used by processChemical..)
 
 # The following files must be obtained from PubTator or MeSH and put in
 # a data/ directory

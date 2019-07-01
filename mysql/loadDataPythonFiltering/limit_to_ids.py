@@ -105,7 +105,8 @@ with open(inFile, 'r') as fin, open(outFile, 'w') as fout:
         if line.strip() == '' :
             continue
         total += 1
-        if int(line.split(delim)[idx]) in ids :
+        l = line.split(delim)[idx]
+        if l.isdigit() and int(l) in ids:
             fout.write(line)
         else :
             count += 1
