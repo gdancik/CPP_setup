@@ -27,12 +27,12 @@ from col_to_set import col_to_set
 def processMulti(file, index, outfile, geneFile) :
     genes = col_to_set(geneFile, ',', 0)
     print("# valid genes:", len(genes))
+
     fin = open(file)
     f = open(outfile, "w")
-    for r in fin :
-        
-        row = r.strip()
-        if row[index] in genes :
+    for row in fin :
+        r = row.split()
+        if r[index] in genes :
             s = splitRow(row,index)
             f.write(s)
 
