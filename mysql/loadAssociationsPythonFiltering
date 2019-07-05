@@ -79,6 +79,8 @@ mv mutation2pubtator_processed mutation2pubtator_processed1
 python $scriptDir/limit_to_ids.py mutation2pubtator_processed1 0 mutation2pubtator_processed --username $1 --password $2 
 mysql --user=$1 --password=$2 --local-infile < $scriptDir/loadMutationData.sql 
 
+Rscript $scriptDir/makeMutGeneTable
+
 
 duration=$SECONDS
 echo "Total processing time is $(($duration / 60)) minutes and $(($duration % 60)) seconds."
