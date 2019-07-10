@@ -1,0 +1,52 @@
+#!/bin/bash -e
+
+#user creates a designated directory for the pubmed files,
+#script then creates two subdirectories for the extracted data and the stem
+
+#need to install lxml and nltk
+#pip install lxml
+#pip install nltk
+
+#need to install stopwords from nltk
+#$python
+#>>>import nltk
+#>>>nltk.download('stopwords')
+#>>>exit()
+
+if [ $# -ne 4 ]
+    then
+    echo "Usage: processPubmed dcast.username dcast.password pubOutDir email"
+    echo "Retrieves baseline pubmed files, writes to text files, stems titles & abstracts:"
+    exit -1
+fi
+
+#hardcoded subdirectories
+text="pubmed_text/"
+stem="pmid_stem/"
+
+echo "creating directories"
+mkdir -p $3
+mkdir -p $3$text
+mkdir -p $3$stem
+required=($3 $3$text $3$stem)
+
+#Commands for scripts
+cmdPubmedRetrieve="python pubmed/pubMedRetrieval.py
+					baseline $3 $4"
+cmdWriteFullPubmed="python pubmed/write_full_pubmed_to_text.py
+					$1 $2 $3 $3$text"
+cmdPmidStem="python stem/pmid_and_stem.py
+					$3$text $3$stem"
+
+declare -a cmd
+cmd[0]=$cmdPubmedRetrieve
+cmd[1]=$cmdWriteFullPubmed
+cmd[2]=$cmdPmidStem
+
+#loop through 3 programs
+for ((i=0; i<=2; i++))
+do
+	echo ${cmd[i]}
+	echo
+	${cmd[i]}
+done

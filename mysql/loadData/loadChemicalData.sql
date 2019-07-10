@@ -23,49 +23,39 @@ select 'loading PubChem table...' as '' ;
 -- ------------------------------------------------------
 LOAD DATA LOCAL INFILE 'chemical2pubtator_processed' INTO TABLE PubChem IGNORE 1 LINES;
 
-
-
--- ------------------------------------------------------
---  Update PubChem to include only PMIDs in PubGene table  
---  and remove duplicates using group by  
--- ------------------------------------------------------
-select 'filtering out non PubGene PMIDs...' as '';
-create table t2 as SELECT PubChem.PMID, PubChem.MeshID 
-   FROM PubChem INNER JOIN PubGene ON PubGene.PMID = PubChem.PMID
-   GROUP BY PMID, MeshID;
-   
-drop table PubChem;
-rename table t2 to PubChem;
-
-
-####################################################
-## update PubChem - keep only associations with 
-##    pharmacologically active compounds
-###################################################
-
-create table t2 as SELECT PubChem.PMID, PubChem.MeshID 
-   FROM PubChem INNER JOIN 
-   PharmActionTerms ON PharmActionTerms.MeshID = PubChem.MeshID;
-
-drop table PubChem;
-rename table t2 to PubChem;
-
--- ------------------------------------------------------
---  Update PharmAction table to include only MeshIDs in PubChem table  
---  and remove duplicates using group by  
--- ------------------------------------------------------
-select 'filter out non PubChem MeshIDs' as '';
-create table t2 as SELECT  PharmActionTerms.MeshID, PharmActionTerms.Term 
-   FROM PharmActionTerms INNER JOIN PubChem ON PharmActionTerms.MeshID = PubChem.MeshID
-   GROUP BY PharmActionTerms.MeshID, PharmActionTerms.Term;
-   
-drop table PharmActionTerms;
-rename table t2 to PharmActionTerms;
-
 -- ------------------------------------------------------
 --  DDL for Index PubChem_IX1
 -- ------------------------------------------------------
 select 'creating indices...' as '';
 create INDEX PMIDIndex ON PubChem (PMID);
 create INDEX MeshIndex ON PubChem (MeshID);
+
+-- ------------------------------------------------------
+--  Update PubChem to include only PMIDs in PubGene table  
+--  and remove duplicates using group by  
+-- ------------------------------------------------------
+
+select 'filtering out non PubGene PMIDs...' as '';
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM PubChem WHERE NOT EXISTS
+    (SELECT NULL FROM PubGene WHERE PubGene.PMID = PubChem.PMID);
+
+-- ------------------------------------------------------
+--  Update PubChem to include only pharmacologically  
+--  active compounds
+-- ------------------------------------------------------
+select 'keeping only pharmacologically active compounds...' as '';
+delete from PubChem
+where PubChem.MeshID NOT IN
+   (select MeshID from PharmActionTerms);
+
+-- ------------------------------------------------------
+--  Remove duplicates from PubChem
+-- ------------------------------------------------------
+select "Removing duplicates from PubChem..." as '';
+CREATE TABLE tmp_data SELECT * FROM PubChem;
+TRUNCATE TABLE PubChem;
+ALTER TABLE PubChem ADD unique index idx_unique  (PMID, MeshID);
+INSERT IGNORE INTO PubChem SELECT * from tmp_data;
+DROP TABLE tmp_data;
 

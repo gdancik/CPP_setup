@@ -20,28 +20,21 @@ CREATE TABLE DCAST.PubMesh
 LOAD DATA LOCAL INFILE 'disease2pubtator_processed' INTO TABLE DCAST.PubMesh IGNORE 1 LINES;
 
 -- ------------------------------------------------------
---  Update PubMesh to include only PMIDs in PubGene table  
---  and remove duplicates using group by  
--- ------------------------------------------------------
-select "Filtering PubMesh based on PubGene..." as '';
-create table t2 as SELECT PubMesh.PMID, PubMesh.MeshID 
-   FROM PubMesh INNER JOIN PubGene ON PubGene.PMID = PubMesh.PMID
-   GROUP BY PMID, MeshID;
-   
-drop table PubMesh;
-rename table t2 to PubMesh;
-
-# This is done in processing of disease2pubtator 
-#select "Filtering PubMesh using Cancer...." as '';
-#create table t2 as select PubMesh.PMID, PubMesh.MeshID from PubMesh inner join MeshTerms ON PubMesh.MeshID = MeshTerms.MeshID where MeshTerms.TreeID LIKE 'C04.%';
-#drop table PubMesh;
-#rename table t2 to PubMesh;
-
--- ------------------------------------------------------
 --  DDL for Index PubMesh_IX1
 -- ------------------------------------------------------
 create INDEX PMIDIndex ON PubMesh (PMID);
 create INDEX MeshIndex ON PubMesh (MeshID);
+
+-- ------------------------------------------------------
+--  Update PubMesh to include only PMIDs in PubGene table  
+--  and remove duplicates using group by  
+-- ------------------------------------------------------
+
+select "Filtering PubMesh based on PubGene..." as '';
+SET SQL_SAFE_UPDATES = 0;
+delete from PubMesh
+where PubMesh.PMID NOT in
+    (select distinct PMID from PubGene);
 
 -- ------------------------------------------------------
 --  Update PubGene to include only articles in PubMesh  
@@ -55,6 +48,5 @@ WHERE NOT EXISTS (
     FROM PubMesh
     WHERE PubMesh.PMID = PubGene.PMID 
 );
-
 
 

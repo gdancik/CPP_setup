@@ -1,63 +1,81 @@
 #!/bin/bash -e
 
-#Note: may want to check for valid dcast username and password first
+# TO DO
+# 1. may want to check for valid dcast username and password first
+# 2. do not hardcore year in desc2019.xml and supp2019.xml
+# 3. Check that desc2019 and supp2019 are present (used by processChemical..)
 
 # The following files must be obtained from PubTator or MeSH and put in
-# a download/ directory
+# a data/ directory
 
-# desc2018.xml       
-# supp2018.xml         
-# chemical2pubtator    
+# desc2019.xml      ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/ 
+# supp2019.xml         
+# chemical2pubtator   https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/PubTator/ 
 # disease2pubtator     
 # gene2pubtator        
 # mutation2pubtator    
 
+# mysql connector needs to be installed: pip install  mysql-connector
+
 if [ $# -ne 2 ]
     then
     echo "Usage: processFiles dcast.username dcast.password"
-    echo "Processes pubtator and mesh files in download/ and creates:
-    download/processed - the processed data
-    download/completed - the original files"
+    echo "Processes pubtator and mesh files in data/ and creates:
+    data/processed - the processed data
+    data/completed - the original pubtator files"
     exit -1
+fi
+
+
+# commands to process various scripts
+cmdMesh="python mesh/xml_to_file.py data/mesh/desc2019.xml 
+                data/processed/desc2019.txt descriptor"
+cmdSupp="python mesh/xml_to_file.py data/mesh/supp2019.xml 
+                data/processed/supp2019.txt supplementary"
+
+cmdChem="python pubtator/processChemical2pubtator.py
+                data/processed/desc2019.txt 
+                data/processed/supp2019.txt 
+                data/pubtator/chemical2pubtator 
+                data/processed/chemical2pubtator_processed"
+cmdDisease="python pubtator/processDisease2pubtator.py $1 $2 
+                data/pubtator/disease2pubtator 
+                data/processed/disease2pubtator_processed"
+cmdGenes="python pubtator/processGene2pubtator.py 
+                data/pubtator/gene2pubtator 1 
+                data/processed/gene2pubtator_processed
+				data/genes/HumanGeneIDs.csv"
+cmdMutation="Rscript pubtator/processMutations2pubtator.R data/pubtator/mutation2pubtator data/processed/mutation2pubtator_processed"
+
+
+declare -a files
+declare -a cmd
+files[0]="pubtator/chemical2pubtator";    cmd[0]=$cmdChem
+files[1]="pubtator/disease2pubtator";     cmd[1]=$cmdDisease
+files[2]="pubtator/gene2pubtator";        cmd[2]=$cmdGenes
+files[3]="pubtator/mutation2pubtator";    cmd[3]=$cmdMutation
+
+
+# do not process xml files if already processed
+
+if [ ! -e "data/processed/desc2019.txt"  ]; then
+    files=("mesh/desc2019.xml" "${files[@]}") 
+    cmd=("$cmdMesh" "${cmd[@]}") 
+fi
+
+if [ ! -e "data/processed/supp2019.txt"  ]; then
+    files=("mesh/supp2019.xml" "${files[@]}") 
+    cmd=("$cmdSupp" "${cmd[@]}") 
 fi
 
 echo 
 echo "Checking download directory for invalid files..."
 
-# commands to process various scripts
-cmdMesh="python mesh/xml_to_file.py download/desc2018.xml 
-                download/processed/desc2018.txt descriptor"
-cmdSupp="python mesh/xml_to_file.py download/supp2018.xml 
-                download/processed/supp2018.txt supplementary"
-
-cmdChem="python pubtator/processChemical2pubtator.py
-                download/processed/desc2018.txt 
-                download/processed/supp2018.txt 
-                download/chemical2pubtator 
-                download/processed/chemical2pubtator_processed"
-cmdDisease="python pubtator/processDisease2pubtator.py $1 $2 
-                download/disease2pubtator 
-                download/processed/disease2pubtator_processed"
-cmdGenes="python pubtator/processGene2pubtator.py 
-                download/gene2pubtator 1 
-                download/processed/gene2pubtator_processed"
-cmdMutation="Rscript pubtator/processMutations2pubtator.R download/mutation2pubtator download/processed/mutation2pubtator_processed"
-
-
-declare -a files
-declare -a cmd
-files[0]="desc2018.xml";         cmd[0]=$cmdMesh
-files[1]="supp2018.xml";         cmd[1]=$cmdSupp
-files[2]="chemical2pubtator";    cmd[2]=$cmdChem
-files[3]="disease2pubtator";     cmd[3]=$cmdDisease
-files[4]="gene2pubtator";        cmd[4]=$cmdGenes
-files[5]="mutation2pubtator";    cmd[5]=$cmdMutation
-
-
 # check for required directories
-mkdir -p download/processed/
-mkdir -p download/completed/
-required=(download download/processed download/completed)
+mkdir -p data/processed/
+mkdir -p data/completed/mesh/
+mkdir -p data/completed/pubtator/
+required=(data data/processed data/genes data/pubtator data/mesh data/completed)
 
 for i in "${required[@]}"
 do
@@ -67,17 +85,17 @@ do
     fi
 done
 
-
 # check for invalid files
 invalid=""
-for entry in download/*
+for entry in data/*
 do
   file1="$(basename "$entry")"
 
   if [[ " ${files[@]} " =~ "$file1" ]]; then
    # do nothing
    :
-  elif [ $file1 != "processed" ] && [ $file1 != "completed" ]; then
+  elif [ $file1 != "processed" ] && [ $file1 != "completed" ] &&
+       [ $file1 != "genes" ] && [ $file1 != "mesh" ]; then
     invalid="$invalid $file1"
   fi
 done
@@ -88,20 +106,19 @@ then
     exit
 fi
 
-
 # process files
 total=${#files[*]}
 #total=3
 for (( i=0; i<=$(( $total -1 )); i++ ))
     do
-    ff="download/${files[i]}"
+    ff="data/${files[i]}"
         if [ -f $ff ]; then
             echo "Processing file: $ff"
             echo "cmd: ${cmd[i]}"
             echo
             ${cmd[i]}
-            echo "Moving $ff to download/completed/"
-            mv $ff "download/completed/${files[i]}"
+            echo "Moving $ff to data/completed/"
+            mv $ff "data/completed/${files[i]}"
             echo 
         else
             echo "Note: $ff not found, and will not be processed" 

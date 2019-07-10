@@ -138,12 +138,22 @@ def getAbstract(article):
             #multiple abstracts typically come with hidden headings in tags
             #tags typically have a NlmCategory attribute, if not that then Label attribute
             for abstract in abstracts:
-                if (abstract.attrib.get('NlmCategory', 'null')) != 'null':
-                    abstractText += abstract.attrib.get('NlmCategory', '') + ' ' + abstract.text + ' '
-                elif (abstract.attrib.get('Label', 'null')) != 'null':
-                    abstractText += abstract.attrib.get('Label', '') + ' ' + abstract.text + ' '
-                else:
-                    abstractText += abstract.text + ' '
+                abText = abstract.text
+                if abText is None :
+                    abText = ''
+                #print("abstract.txt:", abstract.text)
+                #print("Nlm:", abstract.attrib.get('NlmCategory','null'))
+                #print("Label:", abstract.attrib.get('Label','null'))
+
+                nlm = abstract.attrib.get('NlmCategory')
+                if nlm :
+                    abstractText += nlm + ' ' + abText + ' ' 
+                    continue
+                label = abstract.attrib.get('Label')
+                if label :
+                    abstractText += label + ' ' + abText + ' '
+                    continue
+                abstractText += abText + ' '
             abstractText = abstractText[:-1] #remove trailing ' '
         else:
             abstractText = ''
@@ -169,10 +179,74 @@ def dCastDatabase (userName, password, inputDirectory, outputDirectory):
         else:
             print(err)
     else:
-        createTxtFromXML(inputDirectory, cnx)
+        cursor = cnx.cursor(buffered=True)
+        cursor.execute('select distinct pmid from PubGene')
+        pmids = set(cursor.fetchall())
         cnx.close()
+        pmids = {str(x[0]) for x in pmids}
+        print("checking against", len(pmids), "dcast pmids")
 
-def createTxtFromXML(filePath, cnx):
+        #createTxtFromXMLCheckEach(inputDirectory, cnx)
+        #cnx.close()
+
+        createTxtFromXML(inputDirectory, pmids) 
+
+
+# takes set of pmids and checks each pmid against set
+def createTxtFromXML(filePath, pmids):
+
+    #t2 = timeit.default_timer() #begin timer for whole program
+    
+    errorStr = "" #for try / catch
+    
+    # get all xml.gz files in specified directory
+    files = sorted(glob.glob(filePath +"/*.xml.gz"))
+    print("Number of *.xml.gz files found in directory '", filePath, "': ", len(files), sep = "")
+
+    # create outputDirectory if it does not exist
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
+
+    errorCount = 0
+
+    for inFile in files:
+        t0 = timeit.default_timer()
+        
+        try:
+            pubTree = etree.parse(inFile)
+        
+        except :            
+            if not os.path.exists(outputDirectory + ("/ERRORS/")): #create folder for failed file
+                os.makedirs(outputDirectory + ("/ERRORS/"))
+            shutil.copy(inFile, outputDirectory + "/ERRORS/" + os.path.basename(inFile)) #move to ERROR folder
+            errorStr = os.path.basename(inFile) + " - " + str(sys.exc_info()[0])
+            print(errorStr)
+            f = open(outputDirectory + "/ERRORS/log.txt", "a")
+            f.write(errorStr + "\n")
+            f.close()
+            errorCount += 1
+            continue #skip to next file
+        
+             
+        outFile = outputDirectory + "/extracted_" + os.path.basename(inFile).replace(".xml.gz", ".txt")
+        
+        writeFile = open(outFile, 'w') #open file for data transfer
+        
+        for pubmedArticle in pubTree.getiterator('PubmedArticle'):
+            if getPmid(pubmedArticle.find('MedlineCitation')) in pmids :
+                writeToFile(pubmedArticle, writeFile)
+            pubmedArticle.clear() #clearing nodes slightly increases speed
+        t1 = timeit.default_timer()
+        print("Successful Write : " + outFile + " : " + str(t1 - t0))   
+    
+    #t3 = timeit.default_timer() #end time for whole program
+    #print("\nTotal time of execution: " + str(t3 - t2))
+    if errorCount is not 0 :
+        print("\nWarning:", errorCount, "files could not written. See", outputDirectory + "/ERRORS/log.txt for more information")
+        
+
+# takes db connection 'cnx' and checks each pmid one at a time by querying db
+def createTxtFromXMLCheckEach(filePath, cnx):
 
     #t2 = timeit.default_timer() #begin timer for whole program
     
@@ -241,13 +315,19 @@ def writeToFile (pubmedArticle, writeFile):
     pmid = getPmid(medline)
     article = medline.find('Article')
     title = getTitle(article)
-    author = getAuthor(article)
+    author = '' #getAuthor(article)
     abstract = getAbstract(article)
-    journal = article.find('Journal')
-    journalTitle = getJournal(journal)
-    pubDate = journal.find('JournalIssue/PubDate')
-    date = getPubDate(pubDate)
-    
+    journal = '' #article.find('Journal')
+    journalTitle = '' #getJournal(journal)
+    pubDate = '' # journal.find('JournalIssue/PubDate')
+    date = '' #getPubDate(pubDate)
+  
+    # make sure not to output None because that causes problems in pmid_and_stem.py 
+    if title is None :
+        title = ''
+    if abstract is None :
+        abstract = ''
+
     writeFile.write(ascii(pmid) + '\t' + ascii(title) + '\t' + ascii(author) + '\t' +
                     ascii(journalTitle) + '\t' + ascii(date) + '\t' + ascii(abstract) + '\n')
     

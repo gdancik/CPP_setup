@@ -15,20 +15,20 @@ drop <- "none"
 if (length(cargs) == 2) {
     drop = cargs[2]
     if (drop != "drop") {
-        stop("Ivalid second argument. If specified, second argument must be 'drop'")
+        stop("Invalid second argument. If specified, second argument must be 'drop'")
     }
 }
 
 path = cargs[1]
 file.names <- dir(path, pattern = ".txt")
 
+# connect to the database CPP
+con = dbConnect(MySQL(), group = "CPP")
+
 if (drop == "drop") {
   qry <- paste0("DROP TABLE PubArticleText")
   dbGetQuery(con, qry)
 } 
-
-# connect to the database CPP
-con = dbConnect(MySQL(), group = "CPP")
 
 # Create table PubArticleText if it does not exist
 if (!dbExistsTable(con,"PubArticleText")){

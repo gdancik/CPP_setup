@@ -1,0 +1,38 @@
+Code	Title	Pattern	Synonyms
+C19151|C14174|C38486	Metastasis	metastas|metastat|micromet|tumor cell migrat	Metastasis|Metastasize|Tumor Cell Migration|metastasis|metastasize|Metastatic|METASTATIC|metastatic|Micrometastasis|Micromet|Micrometastases|micrometastases
+C15632	Chemotherapy	chemo	"Chemotherapy|Chemo|Chemotherapy (NOS)|Chemotherapy, Cancer, General|chemotherapy"
+C75004	Invasion	invas	Invasion|Cell Invasion
+C25263	Prognostic	prognost	Prognostic
+C17013	Prognosis	prognosi|predict outcom	Prognosis|Prediction of Outcome|prognosis
+C23020	IHC	ihc|immunohistochemistri	"Immunohistochemistry Staining Method|Cell/Tissue, Immunohistochemistry|IHC|IHC|Immunohistochemistry|Immunohistochemistry|immunohistochemistry"
+C16403	Cell Line	cell line|cultur cell	Cell Line|cultured cell line|cultured cells
+C17177	Survival	surviv	Survival|Survivorship|Survivorship Issues|survivorship
+C16899	Stage	stage	Stage|Tumor Stage|stage
+C3352	Recurrence	recur	Recurrence|recur|recur
+C28378	Proliferation	prolifer	Proliferation|Proliferating|proliferating
+C17747	Progression	progress|progressfre	Disease Progression|Progression|progression
+C80488	Expression	express	Expression
+C93352	Targeted Therapy	target therapi	Targeted Therapy|targeted therapy
+C17362	Tumor Suppressor Gene	antioncogen|tumor suppressor	Tumor Suppressor Gene|Anti-Oncogene|Antioncogene|Tumor Suppressor|Tumor Suppressors|antioncogene|tumor suppressor gene
+C70742	Treat	treat	Treat|Treated|Treatment|Treatment
+C16342	Biomarker	marker|biomark|signatur molecul	Biomarker|Biological Marker|Biological Markers|Biomarkers|Marker|Molecular Marker|Signature Molecule|biological marker|biomarker|biomarker|marker|molecular marker|signature molecule
+C19391	Resistance	resist	Resistance
+C15220	Diagnosis	diagnos	Diagnosis|DIAGNOSIS|DIAGNOSIS|Diagnosed|Diagnostic|Diagnostic|Dx|diagnosis
+C15368	Treatment	therapi|treatment|therapeut	Treatment|TX|Therapeutic Interventions|Therapeutic Procedure|Therapy|therapy
+C12662	Stem Cell	stem cell|mother cell|progenitor cell	Stem Cell|Mother Cells|Progenitor Cell|Progenitor Cells|Stem Cells|stem cell
+C25201	Sensitivity	sensit	Sensitivity|Sensitive
+C45576	Mutation	mutat|genet alter|genet chang	Mutation Abnormality|Genetic Alteration|Genetic Change|Mutated|Mutation|Mutation|mutation
+C17102	Risk	risk	Risk
+C1936|C153194	Transcript	transcript|transcriptome	Transcript|Transcripts|code_not_found
+C15744	In Vivo	vivo	In Vivo|in vivo
+C16960	Patient	patient|lay userpati	Patient|LAY USER/PATIENT|PATIENT|PT|Patients|patient
+C71104	Clinical Trial	trial	"Clinical Trial|Clinical Trials|Clinical Trials, Unspecified|Trial|clinical trial|clinical trial"
+C449	DNA	dna|deoxyribonucl acid	DNA|Deoxyribonucleic Acid|Deoxyribonucleic Acid|Deoxyribonucleic acid|Double-stranded DNA|deoxyribonucleic acid|dsDNA
+C15263	In Vitro	vitro	In Vitro|in vitro
+C17004	Genetic Polymorphism	polymorph	Genetic Polymorphism|Polymorphism|polymorphism
+C25343	Mechanism	mechan	Mechanism
+C347|C18078	Carcinogen	carcinogen|cancer induct|cancer caus agent	Carcinogen|Cancer Causing Agents|carcinogen|Carcinogenesis|Cancer Induction|carcinogenesis
+C16936	Oncogene	oncogen|cancerpromot gene	Oncogene|Cancer-Promoting Gene|oncogene
+C15262|C308	Immunotherapy	brm|biomodul|immun modul|immun regul|immunomodul|immun mediat|immunotherapi|immunopotenti|immunotherapeut agent|biolog respons modifi|immunolog direct therapi	Immunotherapy|IMMUNOTHERAPY|Immunologically Directed Therapy|immunotherapy|Immunotherapeutic Agent|BRM|Biological Response Modifier|Biomodulators|Immune Mediators|Immune Modulators|Immune Regulators|Immunomodulating Agent|Immunomodulators|Immunomodulatory Agent|Immunopotentiators|Immunotherapy|Immunotherapy Agent
+C44282	Microarray	microarray	Microarray|High-Density Microarray|MICROARRAY
+C18881	Nucleic Acid Sequencing	sequenc	"Nucleic Acid Sequencing|Gene Sequencing|Molecular Biology, Nucleic Acid Sequencing|NUCLEIC ACID SEQUENCING|Sequencing"

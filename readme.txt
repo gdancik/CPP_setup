@@ -9,7 +9,7 @@ Python scripts to assist with gdancik's CPP repository
 ./processFiles - processes pubtator and mesh files in download directory
 
 #############################################################
-# (2) retreive and process pubmed baseline for dcast 
+# (2) retreive and process pubmed baseline for dcast
 #       Required with DB creation: yes
 #       Required with DB updates: no
 #############################################################
@@ -41,6 +41,9 @@ loadAssociations dcast.username dcast.password dataDir
 
 #upload article text from pubmed stemmed *.txt files
 Rscript mysql/loadArticleText.R directory [drop]
+
+# populate cancer term associations
+Rscript loadArticleText/findCancerTermAssociations.R 
 
 # lookup patterns in NCI thesaurus
 python stem/NCIThesaurusLookUp.py ../misc_data_files/Thesaurus.txt codes.txt cancerterms.txt

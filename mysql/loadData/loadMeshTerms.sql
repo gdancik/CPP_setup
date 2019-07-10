@@ -21,3 +21,9 @@ INTO TABLE DCAST.MeshTerms COLUMNS TERMINATED BY '\t';
 CREATE INDEX MeshTerms_IX1 ON DCAST.MeshTerms (TreeID, MeshID);
 create index MeshTerms_IX2 on MeshTerms(MeshID);
 
+update MeshTerms set Term = REPLACE(Term,'"','');
+
+select "Filtering mesh terms..." as '';
+delete from MeshTerms where TreeID not like 'C04%';
+update meshterms set TreeID = 'C04.000', Term = 'Neoplasms (unspecified)' where TreeID = 'C04';
+

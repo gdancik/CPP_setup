@@ -30,15 +30,27 @@ IGNORE 1 LINES
 select 'creating indices...' as '';
 create INDEX PMIDIndex ON PubMut (PMID);
 
-####################################################
-## update PubMut - only keep articles from PubMesh
-###################################################
-select 'keeping only PubMesh articles...' as '';
+-- ------------------------------------------------------
+-- Keep only articles appearing in PubGene 
+-- ------------------------------------------------------
+select 'keeping only PubGene articles...' as '';
 DELETE FROM PubMut
 WHERE NOT EXISTS (
     SELECT PMID
-    FROM PubMesh
-    WHERE PubMesh.PMID = PubMut.PMID
+    FROM PubGene
+    WHERE PubMut.PMID = PubGene.PMID
 );
+
+
+-- ------------------------------------------------------
+--  Update PubMut to remove duplicates   
+-- ------------------------------------------------------
+
+select "Removing duplicates from PubMut..." as '';
+CREATE TABLE tmp_data SELECT * FROM PubMut;
+TRUNCATE TABLE PubMut;
+ALTER  TABLE PubMut ADD unique index idx_unique  (PMID, MutID);
+INSERT IGNORE INTO PubMut SELECT * from tmp_data;
+DROP TABLE tmp_data;
 
 
