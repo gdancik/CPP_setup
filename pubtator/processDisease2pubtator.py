@@ -5,22 +5,20 @@ Created on Thu Aug  9 10:25:53 2018
 Processes disease2pubtator file by
     (1) keeping only cancer related PMIDs
     (2) removing redundant Mesh IDs
+    (3) keeping only human genes
 
 @author: dancikg
 """
-
-import mysql.connector
-from mysql.connector import errorcode
 
 from collections import defaultdict
 
 import argparse, sys
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser(description='Clean Pubtator Disease data to include only cancer-related articles and remove redundant Mesh IDs')
-ap.add_argument("username", help = "dcast username")
-ap.add_argument("password", help = "dcast password")
-ap.add_argument("inputFile", help = "disease2pubtator file")
+ap = argparse.ArgumentParser(description='Clean Pubtator Disease data to include only cancer-related articles with human genes and remove redundant Mesh IDs')
+ap.add_argument("meshTree", help = "MeshTreeHierarchyWithScopeNotes.txt file")
+ap.add_argument("diseaseFile", help = "disease2pubtator file")
+ap.add_argument("geneFile", help = "gene2pubtator_processed file")
 ap.add_argument("outputFile", help = "output filepath and name")
 
 # print help if no arguments are provided
@@ -30,48 +28,26 @@ if len(sys.argv)==1:
 
 args = vars(ap.parse_args())
 
-userName = args['username']
-password = args['password']
-file = args['inputFile']
+meshTree = args['meshTree']
+diseaseFile = args['diseaseFile']
+geneFile = args['geneFile']
 outFile = args['outputFile']
 
-
-try:
-    cnx = mysql.connector.connect(user=userName, password=password,
-                                      database='dcast')
-except mysql.connector.Error as err:
-    
-    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        print("Something is wrong with your user name or password")
-    elif err.errno == errorcode.ER_BAD_DB_ERROR:
-        print("Database does not exist")
-    else:
-        print(err)
-    raise
-    
-cursor = cnx.cursor()
-
-# create a set of cancerMeshIDs
-query = """select MeshID, TreeID from MeshTerms where            
-           MeshTerms.TreeID like "C04.%" or 
-           MeshTerms.TreeID = "C04"; 
-           """
-
-print("Getting Cancer Mesh Info...")
-cursor.execute(query)
-res = cursor.fetchall()
+print("Reading", meshTree, "...")
 
 meshDictionary = defaultdict(list)
-for k, v in res:
-    meshDictionary[k].append(v)
-
+# retrieve cancer related articles
+for line in open(meshTree):
+    data = line.strip().split('\t')
+    if data[0].startswith('C04'):
+        meshDictionary[data[1]].append(data[0])
 
 cancerMeshIDs = meshDictionary.keys()
 
 
-print("Reading", file, "...")
+print("Reading", diseaseFile, "...")
 # open file
-f = open(file)
+f = open(diseaseFile)
 
 rows = [r.replace("MESH:","") for r in f]
 
@@ -138,16 +114,24 @@ print("updating pmid-mesh associations...")
 for k,v in pmidDictionary.items() :
     pmidDictionary[k] = removeRedundantMesh(pmidDictionary[k])
 
+
+print("Reading", geneFile, "...")
+#get set of pmids for human genes
+genePMID = {line.split('\t')[0] for line in open(geneFile)}
+
+print("filtering human genes...")
+humanCancerPmidDict = {}
+#create dictionary of pmids that are cancer related with human genes
+for key in pmidDictionary:
+    if str(key) in genePMID:
+        humanCancerPmidDict[key] = pmidDictionary[key]
+
+
 print("Writing to file...")
 fout = open(outFile, "w")
 fout.write("PMID\tMeshID\n")
-for pmid, mesh in pmidDictionary.items() :    
+for pmid, mesh in humanCancerPmidDict.items() :    
     a = "\n".join([pmid + '\t' + x for x in mesh])
     fout.write(a+'\n')
 
 print("Results output to:", outFile)
-
-    
-    
-    
-     
