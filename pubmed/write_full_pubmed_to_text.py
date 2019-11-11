@@ -305,8 +305,7 @@ def createTxtFromXMLCheckEach(filePath, cnx):
     #print("\nTotal time of execution: " + str(t3 - t2))
     if errorCount is not 0 :
         print("\nWarning:", errorCount, "files could not written. See", outputDirectory + "/ERRORS/log.txt for more information")
-        
-
+    
 
 def writeToFile (pubmedArticle, writeFile):
     
@@ -317,19 +316,25 @@ def writeToFile (pubmedArticle, writeFile):
     title = getTitle(article)
     author = '' #getAuthor(article)
     abstract = getAbstract(article)
-    journal = '' #article.find('Journal')
+#    journal = '' #article.find('Journal')
     journalTitle = '' #getJournal(journal)
-    pubDate = '' # journal.find('JournalIssue/PubDate')
+#    pubDate = '' # journal.find('JournalIssue/PubDate')
     date = '' #getPubDate(pubDate)
   
+    
     # make sure not to output None because that causes problems in pmid_and_stem.py 
     if title is None :
         title = ''
+    elif title.startswith('RETRACTED:'): #skip retracted
+#        retracted_pmids.append(pmid)
+        return
     if abstract is None :
         abstract = ''
 
+
     writeFile.write(ascii(pmid) + '\t' + ascii(title) + '\t' + ascii(author) + '\t' +
                     ascii(journalTitle) + '\t' + ascii(date) + '\t' + ascii(abstract) + '\n')
+    
     
 
 # main program
@@ -353,4 +358,9 @@ password = args['password']
 inputDirectory = args['inputDirectory']
 outputDirectory = args['outputDirectory']
 
+#retracted_pmids = []
+
 dCastDatabase(userName, password, inputDirectory, outputDirectory)
+
+#print('\nPMIDs of retracted articles not written: ')
+#print(retracted_pmids)
