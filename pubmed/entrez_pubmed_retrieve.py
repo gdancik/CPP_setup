@@ -61,11 +61,14 @@ def modifyAuthors(authors):
     authorList = []
     for author in authors:
         name = author.split(',') #split at comma since last names may have multiple words
-        givenName = name[1].split()
-        #take and join first letter in each given name
-        initials = ''.join([item[0] for item in givenName])
+        if len(name) > 1 :
+            givenName = name[1].split()
+            #take and join first letter in each given name
+            initials = ''.join([item[0] for item in givenName])
+        else :
+            initials = ''
         authorList.append(initials + ' ' + name[0]) #add initials and surname
-    authors = '; '.join(authorList) #join authors with ; separation
+        authors = '; '.join(authorList) #join authors with ; separation
     
     return authors
 
@@ -90,7 +93,8 @@ def readFile (pmidFile, outDir):
         entrezQuery(idList[:500], outFile) #query first 500
         idList = (idList[500:]) #remove first 500
         time.sleep(1) #wait 1 second
-        
+        if number % 5 == 0 :
+            time.sleep(1)
 
 #outDir = r"C:/Users/kewil/test/pmid/"
 #pmidFile = r"C:/Users/kewil/Summerbio/misc_data_files/pmids.txt"

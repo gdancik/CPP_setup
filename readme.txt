@@ -57,4 +57,14 @@ mysql/loadCancerTerms
 #       Required with DB updates: yes
 #########################################################################
 
-python pubmed/getNewPMIDs 
+# creates file called missing.txt with new pmids
+pubmed/getMissingPMIDS 
+
+# retreive PMIDs from PubMed in batches of 500, save to missingPMIDs directory
+python pubmed/entrez_pubmed_retrieve.py missing.txt missingPMIDS dancikg@easternct.edu
+
+# stem files
+python stem/pmid_and_stem.py missingPMIDS/ missingPMIDSstemmed
+
+# load articles 
+Rscript loadArticleText.R ../../missingPMIDSstemmed/ drop

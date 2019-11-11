@@ -1,5 +1,5 @@
 ##########################################################
-# Searches PubArticle Text for patterns form CancerTerms
+# Searches PubArticle Text for patterns from CancerTerms
 # and populates PubCancerTerms table
 ##########################################################
 
@@ -21,6 +21,10 @@ if (!dbExistsTable(con,"PubCancerTerms")){
 
 # Start time to complete this script
 t1 <- Sys.time()
+
+
+qry <- "ALTER  TABLE PubCancerTerms DROP index idx_unique"
+res <- dbGetQuery(con, qry)
 
 # Find number of rows in table 'CancerTerm'.
 qry <- paste0("SELECT TermID, Pattern FROM CancerTerms")

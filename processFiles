@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# WARNING: processDisease2PubTator does not recognize C04.000 in MeshTerms; change back
+# to C04 for this analysis (or modify processDisease2PubTator to read from file)
+
 # TO DO
 # 1. may want to check for valid dcast username and password first
 # 2. do not hardcore year in desc2019.xml and supp2019.xml
