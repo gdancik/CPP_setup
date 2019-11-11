@@ -1,0 +1,3 @@
+
+mysql -u root -p -e 'select distinct(PMID) from PubGene where PMID not in (select distinct PMID from PubCancerTerms) AND PMID NOT IN (select PMID from PubArticleText);' dcast > missing.txt
+

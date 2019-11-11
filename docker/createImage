@@ -1,0 +1,10 @@
+
+t='2019_10_23'
+
+echo "building image gdancik/dcast:$t and gdancik/dcast:latest..."
+
+docker build -t gdancik/dcast:$t .
+
+docker tag gdancik/dcast:$t gdancik/dcast:latest
+
+
