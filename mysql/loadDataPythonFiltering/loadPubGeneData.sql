@@ -17,7 +17,7 @@ CREATE TABLE DCAST.PubGene
 --  Load data into PubGene  
 -- ------------------------------------------------------
 select "Loading PubGene..." as '';
-LOAD DATA LOCAL INFILE 'gene2pubtator_processed' INTO TABLE DCAST.PubGene IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE 'gene2pubtator_processed' INTO TABLE DCAST.PubGene; 
 
 select "Building indices..." as '';
 -- ------------------------------------------------------

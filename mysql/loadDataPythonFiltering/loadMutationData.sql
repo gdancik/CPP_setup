@@ -21,8 +21,7 @@ select 'loading PubMut table...' as '' ;
 --  Load data into PubMut 
 -- ------------------------------------------------------
 LOAD DATA LOCAL INFILE 'mutation2pubtator_processed' INTO TABLE PubMut 
-IGNORE 1 LINES
-(PMID, MutID, @dummy, @dummy);
+IGNORE 2 LINES;
 
 -- ------------------------------------------------------
 --  DDL for Index PubMut_IX1

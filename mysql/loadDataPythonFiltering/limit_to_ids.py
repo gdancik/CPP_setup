@@ -40,9 +40,14 @@ def getDistinctPMIDs(userName, password) :
     return pmids
 
 def getDistinctIDsFromFile(id_file, id_delim) :
+    s = set()
     with open(id_file) as f :
         f.readline()
-        s = { int(x.split(id_delim)[0].strip()) for x in f }
+        for x in f :
+            try :
+                s.add(int(x.split(id_delim)[0].strip()))
+            except :
+                None
         return s
 
 

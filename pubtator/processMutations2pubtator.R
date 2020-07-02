@@ -175,7 +175,15 @@ formatDupFromSplit <- function(x) {
 
 infile <- cargs[1]
 outfile <- cargs[2]
-f = read.delim(infile, sep = "\t", header = TRUE, colClasses = "character")
+
+cat("read file...\n")
+f = read.delim(infile, sep = "\t", header = FALSE, colClasses = "character")
+
+#colnames(f) <- c('PMID', 'Mutation', 'Components', 'C2', 'method')
+
+colnames(f) <- c('PMID', 'Components', 'Mentions', 'Resources')
+
+cat("filtering rs...\n")
 f <- filter(f,  grepl("^RS", f$Components, ignore.case = TRUE) == FALSE) 
 mutTerm <- f$Components
 
@@ -183,14 +191,27 @@ mutTerm <- f$Components
 mutTerm <- gsub(";RS.+", "", mutTerm)
 
 # format mutations
+cat("format substitutions..\n")
 mutTerm <- formatSubstitution(mutTerm)
+
+cat("format deletions..\n")
 mutTerm <- formatDeletion(mutTerm)
+
+cat("format ProteinFS..\n")
 mutTerm <- formatProteinFrameShift(mutTerm)
+
+cat("format Insertion..\n")
 mutTerm <- formatProteinAndNucleoInsertion(mutTerm)
+
+cat("format Deletion..\n")
 mutTerm <- formatProteinAndNucleoDeletionInsertion(mutTerm)
+
+cat("format Duplication..\n")
 mutTerm <- formatProteinAndNucleoDuplication(mutTerm)
 
 # convert nucleotide mutations to lowercase
+cat("convert nucleotide mutations to lowercase...\n")
+
 h <- grepl("^r.", mutTerm)
 mutTerm[h] <- tolower(mutTerm[h])
 

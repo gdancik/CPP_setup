@@ -45,7 +45,7 @@ cmdDisease="python pubtator/processDisease2pubtator.py $1 $2
                 data/pubtator/disease2pubtator 
                 data/processed/disease2pubtator_processed"
 cmdGenes="python pubtator/processGene2pubtator.py 
-                data/pubtator/gene2pubtator 1 
+                data/pubtator/gene2pubtator  
                 data/processed/gene2pubtator_processed
 				data/genes/HumanGeneIDs.csv"
 cmdMutation="Rscript pubtator/processMutations2pubtator.R data/pubtator/mutation2pubtator data/processed/mutation2pubtator_processed"

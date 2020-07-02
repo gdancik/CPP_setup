@@ -10,8 +10,7 @@ DROP TABLE IF EXISTS DCAST.PubMesh;
 
 CREATE TABLE DCAST.PubMesh 
    (PMID INT NOT NULL, 
-	  MeshID VARCHAR(15) NOT NULL, 
-	  MENTIONS VARCHAR(800)
+	  MeshID VARCHAR(15) NOT NULL
    ) ;
 
 -- ------------------------------------------------------

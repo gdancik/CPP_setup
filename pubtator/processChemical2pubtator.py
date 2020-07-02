@@ -20,6 +20,11 @@ from pathlib import Path
 from collections import defaultdict
 
 
+indexPMID = 0
+indexMeshID = 1
+indexMentions = 2
+indexMethod = 3
+
 def testValidArgs(descFile, suppFile, chemFile):
     
     valid = True
@@ -67,12 +72,12 @@ def compareSetToFile(idSet, chemFile):
     
     for line in chemFile:
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
-        text = line.split('\t') #only need text[1] and ignore CHEBI IDs
+        text = line.replace('MESH:','').split('\t') #only need text[1] and ignore CHEBI IDs
         
-        if text[1] not in idSet and text[1][:5] != "CHEBI":
-            words = text[2].split('|') #separate mentions
+        if text[indexMeshID] not in idSet and text[indexMeshID][:5] != "CHEBI":
+            words = text[indexMentions].split('|') #separate mentions
             for word in words:
-                missingDict[text[1]].add(word.lower())
+                missingDict[text[indexMeshID]].add(word.lower())
 
         #small test to show progress in reading of file
         loc += 1
@@ -132,22 +137,23 @@ def writeCorrectedID(outFile, chemFile, updatedDict, idSet):
     t1 = timeit.default_timer()
     
     for line in open(chemFile):
-        
+       
+        line = line.replace('MESH:','')
         #text[0] = PMID, text[1] = MeshID, text[2] = Mentions, text[3] = Resource
         text = line.strip().split('\t') 
        
         #test to overwrite data from chemical2pubtator file
-        if text[1] not in idSet and text[1][:5] != "CHEBI":
+        if text[indexMeshID] not in idSet and text[indexMeshID][:5] != "CHEBI":
            
             replace = False
-            if text[1] in updatedDict :
-                meshID = updatedDict[text[1]]
+            if text[indexMeshID] in updatedDict :
+                meshID = updatedDict[text[indexMeshID]]
                 replace = True
 
             if replace == True:
                 #replace the old meshID (text[1]) with new meshID
-                writeFile.write(text[0] + '\t' + meshID + '\t' + \
-                                text[2] + '\t' + text[3] + '\n')
+                writeFile.write(text[indexPMID] + meshID + '\t' + \
+                                text[indexMentions] + '\t' + text[indexMethod] + '\n')
             else: #if meshID not found in current descriptor or supplemental
                   #data but is also not in dictionary with updated info
                 writeFile.write(line)

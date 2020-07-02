@@ -16,6 +16,10 @@ from collections import defaultdict
 
 import argparse, sys
 
+
+indexPMID = 0
+indexMeshID = 1
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser(description='Clean Pubtator Disease data to include only cancer-related articles and remove redundant Mesh IDs')
 ap.add_argument("username", help = "dcast username")
@@ -77,15 +81,15 @@ rows = [r.replace("MESH:","") for r in f]
 
 # keep rows that are cancer-related
 rows = map(lambda x: x.split('\t'), 
-           filter(lambda x: x.split()[1] in cancerMeshIDs, rows)
+           filter(lambda x: x.split()[indexMeshID] in cancerMeshIDs, rows)
        )
 
 
 # create dictionary of pmid: meshID associations
 pmidDictionary = defaultdict(set)
 for r in rows:
-    pmid = r[0]
-    mesh = r[1]
+    pmid = r[indexPMID]
+    mesh = r[indexMeshID]
     pmidDictionary[pmid].add(mesh)
 
 
